@@ -1,1 +1,13 @@
-site_survey_area,identifier,find_id,find_type,today,find_quantity,comment,ground_visibility,geopoint-Accuracy,geopoint-Longitude,geopoint-Latitude
+today,geopoint-Latitude,geopoint-Longitude,geopoint-Altitude,geopoint-Accuracy,find_type,find_other,find_quantity,find_collected,find_id,ground_visibility,comment,identifier,site_survey_area
+2024-09-21,52.4687723374254,13.3943917989227,5.123456789,1.0,ceramic / pottery,,2,yes,UM_Find-ID_1234,60,,UM_Find-ID_1234,Test_Areal
+2024-09-21,52.468138524481,13.3957994060687,6.123456790,2.0,stone finds,,1,yes,UM_Find-ID_1235,60,,UM_Find-ID_1235,Test_Areal
+2024-09-21,52.4678029727566,13.3969010116612,50.123456791,3.0,tiles / bricks,,1,yes,UM_Find-ID_1236,60,,UM_Find-ID_1236,Test_Areal
+2024-09-21,52.4671691458533,13.3980026172537,10.123456792,4.0,small finds,,2,yes,UM_Find-ID_1237,50,,UM_Find-ID_1237,Test_Areal
+2024-09-21,52.4667963022349,13.4000222275066,3.123456793,5.0,other,,2,yes,UM_Find-ID_1238,50,,UM_Find-ID_1238,Test_Areal
+2024-09-21,52.4664980250663,13.4021030380702,4.123456794,6.0,terracotta finds,,2,yes,UM_Find-ID_1239,80,,UM_Find-ID_1239,Test_Areal
+2024-09-21,52.4664980250663,13.4034494449054,6.123456795,6.0,water pipes,,1,yes,UM_Find-ID_1240,20,this is a comment,UM_Find-ID_1240,Test_Areal
+2024-09-21,52.4664980250663,13.4055914557797,8.123456796,6.0,coins,,4,no,UM_Find-ID_1241,20,,UM_Find-ID_1241,Test_Areal
+2024-09-21,52.4667217331323,13.4075498657219,4.123456797,6.0,metal objects,,1,no,UM_Find-ID_1242,60,,UM_Find-ID_1242,Test_Areal
+2024-09-21,52.4669827244389,13.4088350722465,5.123456798,6.0,other,Glass,3,no,UM_Find-ID_1243,60,,UM_Find-ID_1243,Test_Areal
+2024-09-21,52.4703381891007,13.3999610271959,1.123456799,6.0,other,Glass,2,yes,UM_Find-ID_1236,60,,UM_Find-ID_1236,Test_Areal
+2024-09-21,52.4695179880281,13.4052854542262,5.123456800,6.0,Unsupported-type,,1,no,UM_Find-ID_1244,60,,UM_Find-ID_1244,Test_Areal

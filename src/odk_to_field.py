@@ -10,6 +10,16 @@ from shapely.geometry import Point
 root = tk.Tk()
 root.withdraw()
 
+# Define this as a shorthand to shutting down the script properly;
+def shutdown(success = False):
+    root.destroy()
+    if success:
+        print("Closing with success.")
+        sys.exit(0)
+    else: 
+        print("Closing with errors.")
+        sys.exit(1)
+
 # Set pyogrio as default engine for geopandas
 gpd.options.io_engine = "pyogrio"
 
@@ -18,7 +28,9 @@ input_csv_path = filedialog.askopenfilename(
     filetypes=[("CSV files", "*.csv")]
 )
 if not input_csv_path:
-    raise FileNotFoundError("No CSV file selected.")
+    messagebox.showerror(title = "Error", message = f"Could not process file:\n{e}")
+    shutdown()
+#    raise FileNotFoundError("No CSV file selected.")
 
 # Since we have users interacting with the script via a UI, 
 # we want to communicate errors and problems to them in the same way. 
@@ -27,18 +39,71 @@ try:
     data = pd.read_csv(input_csv_path)
 except Exception as e:
     print(f"Error: Could not read CSV file - {e}")
-    messagebox.showwarning("Warning", f"Could not process file:\n{e}")
-    root.destroy()
-    sys.exit(1)
+    messagebox.showerror(title = "Error", message = f"Could not process file:\n{e}")
+    shutdown()
 
+# Every key that is required in this script needs to be listed here to compare
+# the imported dict, and give a meaningful error message if one of the columns/keys
+# is missing: 
+required_keys = [
+    "comment", 
+    "site_survey_area", 
+    "identifier", 
+    "find_id", 
+    "today", 
+    "find_quantity", 
+    "ground_visibility", 
+    "geopoint-Accuracy", 
+    "find_type", 
+    "geopoint-Longitude", 
+    "geopoint-Latitude"
+]
+present_keys = data.keys()
 
-#TODO at this point, check that all the required columns exist and warn if they do not
-# workflow is restrictive, but this is an error that MIGHT occur if people manually edit the 
-# files and we should at least inform them accordingly
-
+# To ensure that the script can progress safely, we check if all our required keys (columns) exist in the
+# imported file and notify the user accordingly if they do not:
+if not set(required_keys).issubset(set(present_keys)):
+    missing_keys = set(required_keys) - set(present_keys)
+    print(f"Error: Missing columns in CSV-File: {', '.join(missing_keys)}")
+    messagebox.showerror("Error", f"Could not process file, missing columns:\n {', '.join(missing_keys)} ")
+    shutdown()
 
 # Reformat comment into a more informative description in iDAI.field
 data["comment"] = data["comment"].str.replace("odk", "data imported from odk", regex=False)
+
+# We have a pre-defined set of values for find_type which needs to be translated into iDAI.field 
+# terminology, conforming to the pergamongrabung-1 project configuration. 
+# Therefore, we define the mapping here:
+category_mapping = {
+    "ceramic / pottery": "Pottery",
+    "stone finds": "Stone",
+    "tiles / bricks": "Brick",
+    "small finds": "Find",
+    "other": "Find",
+    "terracotta finds": "Terracotta",
+    "water pipes": "Terracotta",
+    "coins": "Coin",
+    "metal objects": "Metal"
+}
+# And then proceed to check the imported csv-File for non-conforming values. 
+# 
+present_categories = set(data["find_type"])
+if not present_categories.issubset(set(category_mapping.keys())):
+    undefined_categories = present_categories - set(category_mapping.keys())
+    print(f"Warning: The following values in 'find_type' are unsupported: {', '.join(undefined_categories)}")
+    proceed = messagebox.askokcancel(
+        title = "Warning", 
+        message = f"The following values in 'find_type' are unsupported:\n {', '.join(undefined_categories)}\n\nProceed and set to 'Find' category?"
+    )
+    if proceed:
+        # The user is asked if they want to proceed by just importing those as "Find", which should usually be the
+        # best solution in that case; but they can also abort to manually fix the csv-File. We add the previously
+        # unsupported categories to the mapping dict and define them as "Find"s.
+        category_mapping.update(dict.fromkeys(undefined_categories, "Find"))
+    else: 
+        shutdown()
+# Last, we add category as a key that contains the reformated find_type to our data dict:
+data["category"] = data["find_type"].replace(category_mapping)
 
 # Build the import DataFrame according to the columns iDAI.fields csv-Import is expecting: 
 # identifier = unique name, relations.isRecordedIn = Trench/Operation, 
@@ -57,25 +122,9 @@ import_df = pd.DataFrame({
         "\nGround Visibility: " + data["ground_visibility"].astype(str) +
         "\nGeopoint Accuracy: " + data["geopoint-Accuracy"].astype(str)
     ),
-    "category": data["find_type"]
+    "category": data["category"]
 })
 
-# Map category values
-category_mapping = {
-    "ceramic / pottery": "Pottery",
-    "stone finds": "Stone",
-    "tiles / bricks": "Brick",
-    "small finds": "Find",
-    "other": "Find",
-    "terracotta finds": "Terracotta",
-    "water pipes": "Terracotta",
-    "coins": "Coin",
-    "metal objects": "Metal"
-}
-import_df["category"] = import_df["category"].replace(category_mapping)
-
-#TODO I will want to add a warning window for categories that are not defined;
-# since the workflow is restrictive, it probably does not happen, and yet it MIGHT
 
 # Find duplicates
 duplicates = import_df["scanCode"].value_counts()
@@ -116,4 +165,4 @@ geodata.to_file("out/Field.Points.geojson", driver="GeoJSON")
 
 
 messagebox.showinfo("Success", "CSV processed successfully")
-root.destroy()
+shutdown(success = True)
