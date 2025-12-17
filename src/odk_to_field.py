@@ -146,10 +146,13 @@ duplicates = duplicates[duplicates > 1]
 # info that needs to be dealt with
 
 
-# Create output folder
-os.makedirs("out", exist_ok=True)
-#TODO should we make sure its empty? what happens if it is not? 
-# are we okay with overwriting? should we not ask?
+output_dir = filedialog.askdirectory(title = "Select output directory")
+output_dir_files = os.listdir(output_dir)
+if len(output_dir_files) != 0:
+    proceed = messagebox.askokcancel(title = "Directory not empty", message="The selected output directory is not empty. Files may be overwritten. Do you wish to proceed?")
+    if not proceed:
+        shutdown()
+
 
 # Save categorized CSVs
 for category in import_df["category"].dropna().unique():
@@ -160,10 +163,10 @@ for category in import_df["category"].dropna().unique():
     if not this_cat.empty:
         dupl_idx = this_cat["scanCode"].isin(duplicates.index)
         if dupl_idx.any():
-            this_cat.loc[~dupl_idx].to_csv(f'out/import.{category}.csv', index=False)
-            this_cat.loc[dupl_idx].to_csv(f'out/import.{category}_duplicates.csv', index=False)
+            this_cat.loc[~dupl_idx].to_csv(f'{output_dir}/import.{category}.csv', index=False)
+            this_cat.loc[dupl_idx].to_csv(f'{output_dir}/import.{category}_duplicates.csv', index=False)
         else:
-            this_cat.to_csv(f'out/import.{category}.csv', index=False)
+            this_cat.to_csv(f'{output_dir}/import.{category}.csv', index=False)
 
 # --- Geodata ---
 geodata = data.loc[data["identifier"] != "", ["geopoint-Longitude", "geopoint-Latitude", "identifier"]]
@@ -173,7 +176,7 @@ geodata = gpd.GeoDataFrame(
     crs="EPSG:4326"
 )
 geodata = geodata.to_crs(epsg=32635)
-geodata.to_file("out/Field.Points.geojson", driver="GeoJSON")
+geodata.to_file(f"{output_dir}/Field.Points.geojson", driver="GeoJSON")
 
 
 
