@@ -105,6 +105,17 @@ if not present_categories.issubset(set(category_mapping.keys())):
 # Last, we add category as a key that contains the reformated find_type to our data dict:
 data["category"] = data["find_type"].replace(category_mapping)
 
+
+# Find duplicate identifiers and warn if duplicates exist.
+duplicates = data["identifier"].value_counts()
+duplicates = duplicates[duplicates > 1]
+if duplicates.count() > 0:
+    print(duplicates)
+    messagebox.showwarning(
+        title = "Duplicate identifiers", 
+        message = "The CSV-File contains duplicate identifiers - check the output."
+    )
+
 # Build the import DataFrame according to the columns iDAI.fields csv-Import is expecting: 
 # identifier = unique name, relations.isRecordedIn = Trench/Operation, 
 # scanCode = QR-Code, date = #TODO this has to be redone to conform to the new inputType!
