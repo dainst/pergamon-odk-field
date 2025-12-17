@@ -118,7 +118,7 @@ if duplicates.count() > 0:
 
 # Build the import DataFrame according to the columns iDAI.fields csv-Import is expecting: 
 # identifier = unique name, relations.isRecordedIn = Trench/Operation, 
-# scanCode = QR-Code, date = #TODO this has to be redone to conform to the new inputType!
+# scanCode = QR-Code, date.value/date.endValue/date.isRange = the date,
 # amount = number of finds/fragments, spatialLocation = description of the spatial 
 # location (here: additional information about the geometry and find circumstances)
 # category = the category of resource to import (will be used to split into multiple files)
@@ -126,7 +126,9 @@ import_df = pd.DataFrame({
     "relations.isRecordedIn": data["site_survey_area"],
     "identifier": data["identifier"],
     "scanCode": data["find_id"],
-    "date": pd.to_datetime(data["today"]).dt.strftime("%d.%m.%Y"),
+    "date.value": pd.to_datetime(data["today"]).dt.strftime("%d.%m.%Y"),
+    "date.endValue": "",
+    "date.isRange": "false",
     "amount": data["find_quantity"],
     "spatialLocation": (
         "" + data["find_id"].astype(str) +
