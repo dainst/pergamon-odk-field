@@ -200,7 +200,11 @@ class ODKToField:
         # info that needs to be dealt with
         # Also: I am confused here; do we really want to select the duplicate QR-Codes or the identifiers...?
 
-        # Save categorized CSVs
+        # Since iDAI.field needs one file for each category it will import, we are saving a new csv-File 
+        # for each category present in the data. If there are rows with duplicates, 
+        # these are saved in a specific "_duplicates" file for manual review and merging. 
+        # The files are named so that iDAI.field will automatically recognize the category from the file name. 
+        self.log(f"Writing output files to directory: {output_dir}")
         for category in field_data["category"].dropna().unique():
             this_cat = field_data.loc[
                 field_data["category"] == category, field_data.columns != "category"
@@ -209,12 +213,12 @@ class ODKToField:
             if not this_cat.empty:
                 dupl_idx = this_cat["scanCode"].isin(duplicates.index)
                 if dupl_idx.any():
-                    self.log(f"Writing {len(this_cat.loc[~dupl_idx])} resources to file '{output_dir}/import.{category}.csv'")
+                    self.log(f"Writing {len(this_cat.loc[~dupl_idx])} resources to file 'import.{category}.csv'")
                     this_cat.loc[~dupl_idx].to_csv(f'{output_dir}/import.{category}.csv', index=False)
-                    self.log(f"Writing {len(this_cat.loc[dupl_idx])} resources to file '{output_dir}/import.{category}_duplicates.csv'")
+                    self.log(f"Writing {len(this_cat.loc[dupl_idx])} resources to file 'import.{category}_duplicates.csv'")
                     this_cat.loc[dupl_idx].to_csv(f'{output_dir}/import.{category}_duplicates.csv', index=False)
                 else:
-                    self.log(f"Writing {len(this_cat)} resources to file '{output_dir}/import.{category}.csv'")
+                    self.log(f"Writing {len(this_cat)} resources to file 'import.{category}.csv'")
                     this_cat.to_csv(f'{output_dir}/import.{category}.csv', index=False)
 
 
@@ -226,7 +230,8 @@ class ODKToField:
             crs="EPSG:4326"
         )
         geodata = geodata.to_crs(epsg=32635)
-        self.log(f"Writing {len(geodata)} resources to file '{output_dir}/Field.Points.geojson'")
+        self.log(f"Writing output files to directory: {output_dir}")
+        self.log(f"Writing {len(geodata)} resources to file 'Field.Points.geojson'")
         geodata.to_file(f"{output_dir}/Field.Points.geojson", driver="GeoJSON")
 
 
@@ -247,19 +252,28 @@ class ODKToField:
             messagebox.showerror(title = "Error", message = f"Could not process file:\n{e}")
             return
 
-        # We need to check if all the columns are present: 
+        # We need to check if all the columns needed for further processing are present
+        # and will abort the run gracefully if they are not, so that the user can fix the 
+        # csv-file and try again.  
         if not self.all_columns_present_in_input(data):
             self.log(f"Processing cancelled")
             return
         
+        # We reassign here as the original data is being changed, with a new category-key being added. 
+        # If mapping the find_type to the pre-defined categories goes wrong, we exit gracefully so that
+        # the user can fix the file manually and try again. 
         data = self.map_categories(data)
         if data is None: 
             self.log(f"Processing cancelled")
             return
 
+        # Am unsure if this is needed - Field Desktop itself does warn when trying to input multiple
+        # identifiers, but I still see value in notifying people here. 
         self.log_duplicate_identifier(data)
 
+        # Last step in the transformation, we build the new dataframe in the format iDAI.field expects:
         field_data = self.build_field_data(data)
+        # TODO needs error handling and clear communication about malformed input file.
 
         output_dir = self.select_output_directory()
         try: 
