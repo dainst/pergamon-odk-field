@@ -223,13 +223,27 @@ class ODKToField:
 
 
     def save_geodata(self, data, output_dir):
-        geodata = data.loc[data["identifier"] != "", ["geopoint-Longitude", "geopoint-Latitude", "identifier"]]
+        # We cannot have empty identifiers in the out GeoJSON, since Field Desktop won't be able to import
+        # a FeatureCollection that does not contain valid 'identifier'-attributes. Rows without geodata are 
+        # removed for obvious reasons.
+        valid_rows = (
+            data["identifier"].notna() &  # Not NaN/None
+            (data["identifier"] != "") &   # Not empty string
+            data["geopoint-Longitude"].notna() & 
+            data["geopoint-Latitude"].notna()
+        )
+        geodata = data.loc[valid_rows, ["geopoint-Longitude", "geopoint-Latitude", "identifier"]]
+        
         geodata = gpd.GeoDataFrame(
             geodata,
             geometry=[Point(xy) for xy in zip(geodata["geopoint-Longitude"], geodata["geopoint-Latitude"])],
             crs="EPSG:4326"
         )
         geodata = geodata.to_crs(epsg=32635)
+        # We can remove the original geodata from the attributes; it makes the file larger and these attributes 
+        # cannot be imported by iDAI.field anyway. 
+        geodata = geodata.drop(columns=["geopoint-Longitude", "geopoint-Latitude"])
+
         self.log(f"Writing output files to directory: {output_dir}")
         self.log(f"Writing {len(geodata)} resources to file 'Field.Points.geojson'")
         geodata.to_file(f"{output_dir}/Field.Points.geojson", driver="GeoJSON")
