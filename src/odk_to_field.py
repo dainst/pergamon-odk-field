@@ -281,16 +281,17 @@ class ODKToField:
         except Exception as e:
             self.log(f"Error: Could not save CSV files - {e}")
             messagebox.showerror(title = "Error", message = f"Could not save CSV files.")
+            return
 
         try: 
             self.save_geodata(data, output_dir)
         except Exception as e:
             self.log(f"Error: Could not save geodata - {e}")
             messagebox.showerror(title = "Error", message = f"Could not save geodata.")
+            return
 
         self.log(f"Processing file '{os.path.basename(input_csv_path)}' finished.")
         messagebox.showinfo("Success", "CSV processed successfully")
-
         return
 
     def shutdown(self):
