@@ -165,7 +165,17 @@ class ODKToField:
     def build_field_data(self, data):
         # Reformat comment into a more informative description in iDAI.field
         data["comment"] = data["comment"].str.replace("odk", "data imported from odk", regex=False)
-
+        # Try to parse the date to fail properly if date format is invalid
+        try:
+            data["field_date"] = pd.to_datetime(data["today"]).dt.strftime("%d.%m.%Y")
+        except:
+            self.log("Could not parse dates in column 'today' - check the format.")
+            messagebox.showerror(title="Could not process CSV file", message="Invalid dates in column 'today'.")
+            return None
+        # TODO this is not actually a very good solution to that problem. If Pergamon will not care about
+        # the dates being incorrect, we could just coerce and add invalid dates as empty strings to the
+        # import files?
+      
         # Build the import DataFrame according to the columns iDAI.fields csv-Import is expecting: 
         # identifier = unique name, relations.isRecordedIn = Trench/Operation, 
         # scanCode = QR-Code, date.value/date.endValue/date.isRange = the date,
@@ -176,7 +186,7 @@ class ODKToField:
             "relations.isRecordedIn": data["site_survey_area"],
             "identifier": data["identifier"],
             "scanCode": data["find_id"],
-            "date.value": pd.to_datetime(data["today"]).dt.strftime("%d.%m.%Y"),
+            "date.value": data["field_date"],
             "date.endValue": "",
             "date.isRange": "false",
             "amount": data["find_quantity"],
@@ -287,6 +297,9 @@ class ODKToField:
 
         # Last step in the transformation, we build the new dataframe in the format iDAI.field expects:
         field_data = self.build_field_data(data)
+        if field_data is None:
+            self.log(f"Processing cancelled")
+            return
         # TODO needs error handling and clear communication about malformed input file.
 
         output_dir = self.select_output_directory()
