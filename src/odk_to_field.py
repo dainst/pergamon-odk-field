@@ -2,6 +2,7 @@ import os
 import sys
 import tkinter as tk
 from tkinter import filedialog, messagebox, scrolledtext
+from tkcalendar import DateEntry
 
 import pandas as pd
 import geopandas as gpd
@@ -39,13 +40,22 @@ class ODKToField:
         )
         self.start_button.pack(side=tk.LEFT, padx=5)
 
+
+        # We add a simple date picker, so that we may select the imported file by a specific day and are
+        # able to create specific import files for each day of work - this is important, because we do not
+        # want to duplicate imports to iDAI.field after their identifiers have been changed there and make sure 
+        # that each object is only imported once. The date picker will default to 'today'. 
+        self.date_picker = DateEntry(button_frame, selectmode='day')
+        self.date_picker.pack(side=tk.LEFT, padx=5, expand=True)
+
+
         self.quit_button = tk.Button(
             button_frame,
             text="Quit",
             command=self.shutdown,
             font=("Arial", 12)
         )
-        self.quit_button.pack(side=tk.RIGHT, padx=5)
+        self.quit_button.pack(side=tk.LEFT, padx=5)
 
 
         # Set pyogrio as default engine for geopandas
@@ -112,6 +122,18 @@ class ODKToField:
             return False
         else: 
             return True
+
+    def filter_by_date(self, data):
+        # We are converting both time specifications into the same format (as used by pandas)
+        # as we use the ps variant later in this script anyway. 
+        selected_date = pd.to_datetime(self.date_picker.get_date())
+        data["today"] = pd.to_datetime(data["today"])
+
+        result = data[data["today"] == selected_date]
+        if (len(result) == 0):
+            return None
+        else: 
+            return result
 
     def map_categories(self, data):
         # We have a pre-defined set of values for find_type which needs to be translated into iDAI.field 
@@ -281,6 +303,14 @@ class ODKToField:
         # csv-file and try again.  
         if not self.all_columns_present_in_input(data):
             self.log(f"Processing cancelled")
+            return
+
+        # Here, we select the content of the csv file by the date selected in the date picker. 
+        # This allows imports of only a single day. 
+        self.log(f"Filtering for date: {self.date_picker.get_date()}")
+        data = self.filter_by_date(data)
+        if data is None: 
+            self.log(f"Processing cancelled - no data on that date.")
             return
         
         # We reassign here as the original data is being changed, with a new category-key being added. 
