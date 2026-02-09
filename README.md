@@ -10,9 +10,37 @@ The workflow has been published as
 
 ...
 
+
 # Note
 
 The Python script is provided as a template for adaptation and may require minor modifications for different survey designs or database schemas.
+
+
+# Run this Script from the Command Line
+
+To start this script from the command line, use the following commands in your terminal while in the main directory:
+
+```python
+# Create package environment
+python3 -m venv venv
+
+# Activate your environment
+source venv/bin/activate
+
+# Install the required packages in your environment
+pip install -r requirements.txt 
+
+# Either: run the simple transformer script
+python3 src/odk_to_field.py
+
+# Or: run the extended script
+python3 src/new_odk_to_field.py
+```
+
+The simple transformer script `odk_to_field.py` is meant as a basic introduction for beginners: Here you can more easily add and remove functionality, or change how and what data is processed, without the need to understand as much about python programming. 
+
+The "new" version (`new_odk_to_field.py`) is designed for use within the workflow and geared more towards a better user experience at the cost of being less easy to understand from a scripting perspective. 
+
 
 # Further Information
 For more details about the Pergamon project and ongoing research activities, please consult the following resources:
