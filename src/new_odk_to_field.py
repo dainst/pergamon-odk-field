@@ -226,13 +226,18 @@ class ODKToField:
         # these are saved in a specific "duplicates" file for manual review and merging. 
         # The files are named so that iDAI.field will automatically recognize the category from the file name. 
         self.log(f"Writing output files to directory: {output_dir}")
+
+        selected_date = pd.to_datetime(self.date_picker.get_date())
+        selected_date = selected_date.strftime("%Y-%m-%d")
+
+
         for category in field_data["category"].dropna().unique():
             this_cat = field_data.loc[
                 field_data["category"] == category, field_data.columns != "category"
             ].dropna(subset=["identifier"])
 
-            filename = f'import.{category}.csv'
-            filename_duplicates = f'duplicates.{category}.csv'
+            filename = f'{selected_date}_import.{category}.csv'
+            filename_duplicates = f'{selected_date}_duplicates.{category}.csv'
 
 
             if not this_cat.empty:
@@ -274,10 +279,13 @@ class ODKToField:
         geodata = geodata.drop(columns=["geopoint-Longitude", "geopoint-Latitude"])
         # An open question is whether we want to import the Altitude as well. It is recorded, but GPS altitude is 
         # very much inaccurate. 
+        selected_date = pd.to_datetime(self.date_picker.get_date())
+        selected_date = selected_date.strftime("%Y-%m-%d")
+        filename = f'{selected_date}_import.Points.geojson'
 
         self.log(f"Writing output files to directory: {output_dir}")
-        self.log(f"Writing {len(geodata)} resources to file 'Field.Points.geojson'")
-        geodata.to_file(f"{output_dir}/Field.Points.geojson", driver="GeoJSON")
+        self.log(f"Writing {len(geodata)} resources to file '{filename}'")
+        geodata.to_file(f"{output_dir}/{filename}", driver="GeoJSON")
 
 
     def run(self):
