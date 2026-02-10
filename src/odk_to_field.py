@@ -165,10 +165,10 @@ if len(output_dir_files) != 0:
 duplicates = data["find_id"].value_counts()
 duplicates = duplicates[duplicates > 1]
 if duplicates.count() > 0:
-    print(duplicates)
+    duplicates.to_csv(f'{output_dir}/duplicates.txt', index=True)
     messagebox.showwarning(
         title = "Duplicate 'find_id's", 
-        message = "The CSV-File contains duplicate 'find_id's (identifiers) - check the output."
+        message = "The CSV-File contains duplicates - check 'duplicates.txt' in your output directory."
     )
 # You can then write down the duplicate "find_id"s and delete or rename them in the output files.
 
