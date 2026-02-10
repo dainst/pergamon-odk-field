@@ -62,7 +62,6 @@ except Exception as e:
 # Every "key" (= column) that is required in this script needs to be listed here 
 # check whether the script can actually process your data or not: 
 required_keys = [
-    "comment", 
     "find_id", 
     "today", 
     "find_quantity", 
@@ -82,14 +81,6 @@ if not set(required_keys).issubset(set(present_keys)):
     print(f"Error: Missing columns in CSV-File: {', '.join(missing_keys)}")
     messagebox.showerror("Error", f"Could not process file, missing columns:\n {', '.join(missing_keys)} ")
     shutdown()
-
-# ----------Formatting the comment-------------------------------------------------------------------------
-# Here, we are adding an informative description / comment for iDAI.field which will record that we
-# imported the data from ODK. 
-# You can change this line! (str.join() merges the value in each "comment" cell from the csv by adding the 
-# ODK-Import-Comment before it.)
-data["comment"] = str.join("Data imported from ODK. ", data["comment"])
-
 
 # ----------Defining 'categories' for iDAI.field------------------------------------------------------------------------
 # We have a pre-defined set of values for find_type which needs to be translated into iDAI.field 
@@ -131,6 +122,7 @@ import_df = pd.DataFrame({
     # Change the target parent resource here by replacing "Survey Import" with the name of the 
     # Operation you want to import your data to!
     "relations.isRecordedIn": "Survey Import",
+    "shortDescription": "Imported from ODK",
     "identifier": data["find_id"],
     "scanCode": data["find_id"],
     "date.value": pd.to_datetime(data["today"]).dt.strftime("%d.%m.%Y"),
