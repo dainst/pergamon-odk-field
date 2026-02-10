@@ -47,8 +47,6 @@ except Exception as e:
 # is missing: 
 required_keys = [
     "comment", 
-    "site_survey_area", 
-    "identifier", 
     "find_id", 
     "today", 
     "find_quantity", 
@@ -106,14 +104,14 @@ if not present_categories.issubset(set(category_mapping.keys())):
 data["category"] = data["find_type"].replace(category_mapping)
 
 
-# Find duplicate identifiers and warn if duplicates exist.
-duplicates = data["identifier"].value_counts()
+# Find duplicate find_id and warn if duplicates exist.
+duplicates = data["find_id"].value_counts()
 duplicates = duplicates[duplicates > 1]
 if duplicates.count() > 0:
     print(duplicates)
     messagebox.showwarning(
-        title = "Duplicate identifiers", 
-        message = "The CSV-File contains duplicate identifiers - check the output."
+        title = "Duplicate 'find_id's", 
+        message = "The CSV-File contains duplicate 'find_id's (identifiers) - check the output."
     )
 
 # Build the import DataFrame according to the columns iDAI.fields csv-Import is expecting: 
@@ -123,8 +121,10 @@ if duplicates.count() > 0:
 # location (here: additional information about the geometry and find circumstances)
 # category = the category of resource to import (will be used to split into multiple files)
 import_df = pd.DataFrame({
-    "relations.isRecordedIn": data["site_survey_area"],
-    "identifier": data["identifier"],
+    # Change the target parent resource here by replacing "Survey Import" with the name of the 
+    # Operation you want to import your data to!
+    "relations.isRecordedIn": "Survey Import",
+    "identifier": data["find_id"],
     "scanCode": data["find_id"],
     "date.value": pd.to_datetime(data["today"]).dt.strftime("%d.%m.%Y"),
     "date.endValue": "",
@@ -169,7 +169,8 @@ for category in import_df["category"].dropna().unique():
             this_cat.to_csv(f'{output_dir}/import.{category}.csv', index=False)
 
 # --- Geodata ---
-geodata = data.loc[data["identifier"] != "", ["geopoint-Longitude", "geopoint-Latitude", "identifier"]]
+geodata = data.loc[data["find_id"] != "", ["geopoint-Longitude", "geopoint-Latitude", "find_id"]]
+geodata = geodata.rename({"find_id": "identifier"})
 geodata = gpd.GeoDataFrame(
     geodata,
     geometry=[Point(xy) for xy in zip(geodata["geopoint-Longitude"], geodata["geopoint-Latitude"])],

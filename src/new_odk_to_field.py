@@ -100,8 +100,6 @@ class ODKToField:
         # is missing: 
         required_keys = [
             "comment", 
-            "site_survey_area", 
-            "identifier", 
             "find_id", 
             "today", 
             "find_quantity", 
@@ -171,16 +169,17 @@ class ODKToField:
 
         return(data)
 
-    def log_duplicate_identifier(self, data):
-        # Find duplicate identifiers and warn if duplicates exist.
-        duplicates = data["identifier"].value_counts()
+    def log_duplicate_find_id(self, data):
+        # Find duplicate `find_id`s and warn if duplicates exist, as they will be used as the identifier 
+        # in iDAI.field, which has to be unique. 
+        duplicates = data["find_id"].value_counts()
         duplicates = duplicates[duplicates > 1]
         if not duplicates.empty:
-            self.log(f"Warning: Found {len(duplicates)} duplicate identifiers:")
+            self.log(f"Warning: Found {len(duplicates)} duplicate 'find_id's:")
             self.log(duplicates.to_string())
             messagebox.showwarning(
-                title = "Duplicate identifiers", 
-                message = f"The CSV-File contains duplicate {len(duplicates)} identifiers - check the output."
+                title = "Duplicate 'find_id's", 
+                message = f"The CSV-File contains duplicate {len(duplicates)} 'find_id's (identifiers) - check the output."
             )
 
 
@@ -205,8 +204,8 @@ class ODKToField:
         # location (here: additional information about the geometry and find circumstances)
         # category = the category of resource to import (will be used to split into multiple files)
         field_data = pd.DataFrame({
-            "relations.isRecordedIn": data["site_survey_area"],
-            "identifier": data["identifier"],
+            "relations.isRecordedIn": "Survey Import",
+            "identifier": data["find_id"],
             "scanCode": data["find_id"],
             "date.value": data["field_date"],
             "date.endValue": "",
@@ -259,12 +258,16 @@ class ODKToField:
         # a FeatureCollection that does not contain valid 'identifier'-attributes. Rows without geodata are 
         # removed for obvious reasons.
         valid_rows = (
-            data["identifier"].notna() &  # Not NaN/None
-            (data["identifier"] != "") &   # Not empty string
+            data["find_id"].notna() &  # Not NaN/None
+            (data["find_id"] != "") &   # Not empty string
             data["geopoint-Longitude"].notna() & 
             data["geopoint-Latitude"].notna()
         )
-        geodata = data.loc[valid_rows, ["geopoint-Longitude", "geopoint-Latitude", "identifier"]]
+        # We select the appropriate columns for the GeoJSON import, for which we only need the point coordinates and 
+        # the find_id. We rename find_id to identifier as iDAI.field needs a property of that name for
+        # import. 
+        geodata = data.loc[valid_rows, ["geopoint-Longitude", "geopoint-Latitude", "find_id"]]
+        geodata = geodata.rename(columns={"find_id": "identifier"})
         
         geodata = gpd.GeoDataFrame(
             geodata,
@@ -275,6 +278,8 @@ class ODKToField:
         # We can remove the original geodata from the attributes; it makes the file larger and these attributes 
         # cannot be imported by iDAI.field anyway. 
         geodata = geodata.drop(columns=["geopoint-Longitude", "geopoint-Latitude"])
+        # An open question is whether we want to import the Altitude as well. It is recorded, but GPS altitude is 
+        # very much inaccurate. 
 
         self.log(f"Writing output files to directory: {output_dir}")
         self.log(f"Writing {len(geodata)} resources to file 'Field.Points.geojson'")
@@ -322,8 +327,8 @@ class ODKToField:
             return
 
         # Am unsure if this is needed - Field Desktop itself does warn when trying to input multiple
-        # identifiers, but I still see value in notifying people here. 
-        self.log_duplicate_identifier(data)
+        # 'find_id's, but I still see value in notifying people here. 
+        self.log_duplicate_find_id(data)
 
         # Last step in the transformation, we build the new dataframe in the format iDAI.field expects:
         field_data = self.build_field_data(data)
