@@ -103,10 +103,10 @@ category_mapping = {
 
 # And here we proceed to check the imported csv-File for non-conforming values. You won't need to change this. 
 data["category"] = data["find_type"].replace(category_mapping)
-# Be aware that there is no error-handling here for the sake of simplicity. 
-# If your "find_type" column in the csv-file contains any value that is not listed in 
-# the mapping above, the script should fail!
-
+# Be aware that, for the sake of simplicity, we don't check if all of your values conform or not. 
+# You will simply get a file for each unique value in your "find_type" column. Only those present in the 
+# mapping will be replaced. 
+# (Beware: This can lead to *a lot* of csv-files if you have many different values in that column.)
 
 
 # ----------Set up how the csv you're importing in iDAI.field will look-------------------------------------------------
