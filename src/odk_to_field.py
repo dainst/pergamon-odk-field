@@ -147,15 +147,6 @@ import_df = pd.DataFrame({
 # Here, we are opening another file dialog that will prompt you to select the directory you want to save your files
 # in. You won't need to change this. 
 output_dir = filedialog.askdirectory(title = "Select output directory")
-output_dir_files = os.listdir(output_dir)
-if len(output_dir_files) != 0:
-    proceed = messagebox.askokcancel(title = "Directory not empty", message="The selected output directory is not empty. Files may be overwritten. Do you wish to proceed?")
-    if not proceed:
-        shutdown()
-# The message box will appear to warn you if the directory you selected is not empty. It is because we don't want
-# you to accidentally overwrite other files. ;)
-
-
 
 
 # ----------Checking for duplicates------------------------------------------------------------------------
@@ -184,9 +175,26 @@ for category in import_df["category"].dropna().unique():
     ]
     
     # And then we simply save all our selected rows in "this_cat" (the category, not the animal) to a new csv-file
-    # in the output directory you selected earlied. The files are named to that iDAI.field immediately understands
-    # which category you want this impoort to be. You can change the file name though:
-    this_cat.to_csv(f'{output_dir}/import.{category}.csv', index=False)
+    # in the output directory you selected earlier. The files are named to that iDAI.field immediately understands
+    # which category you want this import to be.
+    # You can change the file name here: 
+    filename = f'import.{category}.csv'
+    # But since we do not want to accidentally overwrite files that you might still need, this will ask you 
+    # any time the file we are trying to write already exists. 
+    try:
+        this_cat.to_csv(f'{output_dir}/{filename}', index=False, mode="x")
+        # 'mode="x" ' tells the function to throw a "FileExistsError" if the file name it is trying to write is already
+        # present in the directory:
+    except FileExistsError:
+        # If that happens, this opens a message box that asks you to confirm if you want to overwrite the file or not:
+        proceed = messagebox.askyesno(
+            title="Warning", 
+            message=f"File '{filename}' already exists. Overwrite?"
+        )
+        if proceed:
+            # You also need to change the file name here:
+            this_cat.to_csv(f'{output_dir}/{filename}', index=False, mode="w")
+        
 
 # ----------Processing the Geodata--------------------------------------------------------------------------------------
 # To transform and then save the geodata, we first select everything that we want to appear in out "GeoJSON" file in 
@@ -208,9 +216,21 @@ geodata = gpd.GeoDataFrame(
 # You can change this to your own target CRS by changing the number after "epsg=" in .to_crs():
 geodata = geodata.to_crs(epsg=32635)
 
-# And last but not least, we save the GeoJSON! All categories go in the same file here. Of course, 
-# you can change the file name here:
-geodata.to_file(f"{output_dir}/Field.Points.geojson", driver="GeoJSON")
+# And last but not least, we save the GeoJSON! All categories go in the same file here. 
+# But first, we do need to check if that file already exists and ask you if you want to overwrite it.
+output_dir_files = os.listdir(output_dir)
+if "Field.Points.geojson" in output_dir_files:
+    proceed = messagebox.askyesno(
+        title="Warning", 
+        message=f"File 'Field.Points.geojson' already exists. Overwrite?"
+    )
+else:
+    # If is does not exist, we can proceed without asking you. 
+    proceed = True
+
+if proceed:
+    # And of course, you can change the file name "Field.Points.geojson" to something else:
+    geodata.to_file(f"{output_dir}/Field.Points.geojson", driver="GeoJSON")
 
 # Just a friendly notification that the whole process has finished now, and we can close the script: 
 messagebox.showinfo("Success", "CSV processed successfully")
