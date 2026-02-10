@@ -169,18 +169,15 @@ class ODKToField:
 
         return(data)
 
-    def log_duplicate_find_id(self, data):
+    def find_duplicates(self, data):
         # Find duplicate `find_id`s and warn if duplicates exist, as they will be used as the identifier 
         # in iDAI.field, which has to be unique. 
         duplicates = data["find_id"].value_counts()
         duplicates = duplicates[duplicates > 1]
         if not duplicates.empty:
-            self.log(f"Warning: Found {len(duplicates)} duplicate 'find_id's:")
+            self.log(f"Warning:  {len(duplicates)} duplicate 'find_id's:")
             self.log(duplicates.to_string())
-            messagebox.showwarning(
-                title = "Duplicate 'find_id's", 
-                message = f"The CSV-File contains duplicate {len(duplicates)} 'find_id's (identifiers) - check the output."
-            )
+        return duplicates
 
 
     def build_field_data(self, data):
@@ -223,34 +220,31 @@ class ODKToField:
         
         return(field_data)
 
-    def save_csv_output(self, field_data, output_dir):
-        # Find duplicates
-        duplicates = field_data["scanCode"].value_counts()
-        duplicates = duplicates[duplicates > 1]
-        # TODO consider adding the number of duplicate entries to the success-messagebox, as this is important
-        # info that needs to be dealt with
-        # Also: I am confused here; do we really want to select the duplicate QR-Codes or the identifiers...?
-
+    def save_csv_output(self, field_data, duplicates, output_dir):
         # Since iDAI.field needs one file for each category it will import, we are saving a new csv-File 
         # for each category present in the data. If there are rows with duplicates, 
-        # these are saved in a specific "_duplicates" file for manual review and merging. 
+        # these are saved in a specific "duplicates" file for manual review and merging. 
         # The files are named so that iDAI.field will automatically recognize the category from the file name. 
         self.log(f"Writing output files to directory: {output_dir}")
         for category in field_data["category"].dropna().unique():
             this_cat = field_data.loc[
                 field_data["category"] == category, field_data.columns != "category"
-            ].dropna(subset=["scanCode"])
+            ].dropna(subset=["identifier"])
+
+            filename = f'import.{category}.csv'
+            filename_duplicates = f'duplicates.{category}.csv'
+
 
             if not this_cat.empty:
-                dupl_idx = this_cat["scanCode"].isin(duplicates.index)
+                dupl_idx = this_cat["identifier"].isin(duplicates.index)
                 if dupl_idx.any():
-                    self.log(f"Writing {len(this_cat.loc[~dupl_idx])} resources to file 'import.{category}.csv'")
-                    this_cat.loc[~dupl_idx].to_csv(f'{output_dir}/import.{category}.csv', index=False)
-                    self.log(f"Writing {len(this_cat.loc[dupl_idx])} resources to file 'import.{category}_duplicates.csv'")
-                    this_cat.loc[dupl_idx].to_csv(f'{output_dir}/import.{category}_duplicates.csv', index=False)
+                    self.log(f"Writing {len(this_cat.loc[~dupl_idx])} resources to file '{filename}'")
+                    this_cat.loc[~dupl_idx].to_csv(f'{output_dir}/{filename}', index=False)
+                    self.log(f"Writing {len(this_cat.loc[dupl_idx])} resources to file '{filename_duplicates}'")
+                    this_cat.loc[dupl_idx].to_csv(f'{output_dir}/{filename_duplicates}', index=False)
                 else:
-                    self.log(f"Writing {len(this_cat)} resources to file 'import.{category}.csv'")
-                    this_cat.to_csv(f'{output_dir}/import.{category}.csv', index=False)
+                    self.log(f"Writing {len(this_cat)} resources to file '{filename}'")
+                    this_cat.to_csv(f'{output_dir}/{filename}', index=False)
 
 
     def save_geodata(self, data, output_dir):
@@ -328,8 +322,8 @@ class ODKToField:
 
         # Am unsure if this is needed - Field Desktop itself does warn when trying to input multiple
         # 'find_id's, but I still see value in notifying people here. 
-        self.log_duplicate_find_id(data)
-
+        duplicates = self.find_duplicates(data)
+        
         # Last step in the transformation, we build the new dataframe in the format iDAI.field expects:
         field_data = self.build_field_data(data)
         if field_data is None:
@@ -339,7 +333,7 @@ class ODKToField:
 
         output_dir = self.select_output_directory()
         try: 
-            self.save_csv_output(field_data, output_dir)
+            self.save_csv_output(field_data, duplicates, output_dir)
         except Exception as e:
             self.log(f"Error: Could not save CSV files - {e}")
             messagebox.showerror(title = "Error", message = f"Could not save CSV files.")
