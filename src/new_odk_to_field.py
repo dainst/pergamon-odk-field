@@ -11,7 +11,7 @@ from tkcalendar import DateEntry
 
 class ODKToField:
     # -- Config / defaults --
-    RECORDED_IN_DEFAULT = "Survey Import"
+    RECORDED_IN_DEFAULT = "ODK Import Data"
     TARGET_CRS_EPSG = 32635 # UTM zone 35N; adjust if needed
 
     CATEGORY_MAPPING_DEFAULT = {
