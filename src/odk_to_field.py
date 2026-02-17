@@ -8,7 +8,7 @@ import geopandas as gpd
 from shapely.geometry import Point
 
 # Beginner friendly settings (edit these)
-RECORDED_IN = "Survey Import" # FieldDesktop survey area to import into
+RECORDED_IN = "ODK Import Data" # FieldDesktop survey area to import into
 OUTPUT_GEOJSON_NAME = "Field.Points.geojson"
 
 root = tk.Tk()
