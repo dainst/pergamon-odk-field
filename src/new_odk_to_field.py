@@ -195,6 +195,10 @@ class ODKToField:
         if removed > 0:
             self.log(f"Ignored {removed} row(s) without a valid find_id.")
 
+        if len(data) == 0:
+            messagebox.showerror("Error", "No rows with valid 'find_id' in data.")
+            return None
+
         return data
 
     def filter_by_date(self, data: pd.DataFrame) -> pd.DataFrame | None:
@@ -209,6 +213,7 @@ class ODKToField:
         result = data[data["today"].dt.date == selected].copy()
 
         if len(result) == 0:
+            messagebox.showinfo("No data", "No rows found for the selected date.")
             return None
         return result
 
@@ -398,7 +403,7 @@ class ODKToField:
     def run(self):
         input_csv_path = self.select_input_file()
         if not input_csv_path:
-            self.log("Cancelled: No file selected")
+            self.log("Cancelled: No file selected.")
             return
         
         self.log(f"Processing file: {input_csv_path}")
@@ -417,26 +422,22 @@ class ODKToField:
         # and will abort the run gracefully if they are not, so that the user can fix the 
         # csv-file and try again.  
         if not self.all_columns_present_in_input(data):
-            self.log(f"Processing cancelled")
+            self.log("Processing cancelled.")
             return
         
         # Filter empty/whitespace find_id rows
         data = self.filter_rows_without_find_id(data)
-        if data.empty:
-            messagebox.showerror("Error", "No valid rows with a find_id found.")
-            self.log("Processing cancelled — no valid identifiers.")
+        if data is None:
+            self.log("Processing cancelled.")
             return
         
         # Here, we select the content of the csv file by the date selected in the date picker. 
         # This allows imports of only a single day. 
         self.log(f"Filtering for date: {self.date_picker.get_date()}")
-        filtered = self.filter_by_date(data)
-        if filtered is None: 
-            self.log(f"Processing cancelled - no data for that date.")
-            messagebox.showinfo("No data", "No rows found for the selected date.")
+        data = self.filter_by_date(data)
+        if data is None: 
+            self.log("Processing cancelled.")
             return
-        
-        data = filtered
 
         # -- Map categories --
         # We reassign here as the original data is being changed, with a new category-key being added. 
@@ -444,7 +445,7 @@ class ODKToField:
         # the user can fix the file manually and try again. 
         data = self.map_categories(data)
         if data is None: 
-            self.log(f"Processing cancelled")
+            self.log("Processing cancelled.")
             return
 
         # -- Duplicates --
@@ -456,7 +457,7 @@ class ODKToField:
         # Last step in the transformation, we build the new dataframe in the format iDAI.field expects:
         field_data = self.build_field_data(data)
         if field_data is None:
-            self.log(f"Processing cancelled")
+            self.log("Processing cancelled.")
             return
         # TODO needs error handling and clear communication about malformed input file.
 
@@ -480,7 +481,7 @@ class ODKToField:
             return
 
         self.log(f"Processing file '{os.path.basename(input_csv_path)}' finished.")
-        messagebox.showinfo("Success", "CSV processed successfully")
+        messagebox.showinfo("Success", "CSV processed successfully.")
         return
 
     def shutdown(self):
