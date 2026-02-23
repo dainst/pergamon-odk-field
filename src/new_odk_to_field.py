@@ -425,12 +425,6 @@ class ODKToField:
             self.log("Processing cancelled.")
             return
         
-        # Filter empty/whitespace find_id rows
-        data = self.filter_rows_without_find_id(data)
-        if data is None:
-            self.log("Processing cancelled.")
-            return
-        
         # Here, we select the content of the csv file by the date selected in the date picker. 
         # This allows imports of only a single day. 
         self.log(f"Filtering for date: {self.date_picker.get_date()}")
@@ -439,6 +433,12 @@ class ODKToField:
             self.log("Processing cancelled.")
             return
 
+        # Filter empty/whitespace find_id rows
+        data = self.filter_rows_without_find_id(data)
+        if data is None:
+            self.log("Processing cancelled.")
+            return
+        
         # -- Map categories --
         # We reassign here as the original data is being changed, with a new category-key being added. 
         # If mapping the find_type to the pre-defined categories goes wrong, we exit gracefully so that
