@@ -172,6 +172,7 @@ class ODKToField:
 # -- Validation / transformation --
 # -- -- -- -- -- -- -- -- -- -- -- --
     def all_columns_present_in_input(self, data: pd.DataFrame) -> bool:
+        """Check if all required keys/columns are present in the input file."""
         present_keys = set(data.columns)
         missing = [k for k in self.REQUIRED_KEYS if k not in present_keys]
         if missing:
@@ -212,6 +213,8 @@ class ODKToField:
         return result
 
     def map_categories(self, data: pd.DataFrame) -> pd.DataFrame | None:
+        """Replaces the values in 'find_type' according to the category mapping defined in 
+        `CATEGORY_MAPPING_DEFAULT`, with the names of the corresponding categories in iDAI.field."""
         mapping = dict(self.CATEGORY_MAPPING_DEFAULT)
 
         # Make find_type safe
@@ -241,7 +244,7 @@ class ODKToField:
         return data
 
     def find_duplicates(self, data: pd.DataFrame) -> pd.Series:
-        """Duplicate check for find_id (after filtering empty IDs)."""
+        """Check for duplicate values of 'find_id', since iDAI.field needs unique identifiers. Returns the duplicates."""
         counts = data["find_id"].value_counts()
         duplicates = counts[counts > 1]
         if not duplicates.empty:
@@ -252,15 +255,16 @@ class ODKToField:
 # -- -- -- -- -- -- -- -- --
 # -- Build export formats --
 # -- -- -- -- -- -- -- -- --
-    # Reformat comment into a more informative description in iDAI.field
     def build_field_data(self, data: pd.DataFrame) -> pd.DataFrame | None:
-        # comment safe replacement
+        """Structure the data as required by iDAI.field. Formats the date, concatenates some comments, and sets the 
+        appropriate names for the columns in the resulting data."""
+        # This is actually nor reasonable and does not reflect your data at all. #TODO
         data["comment"] = data["comment"].fillna("").astype(str)
         data["comment"] = data["comment"].str.replace(
             "odk", "data imported from odk", regex=False
         )
     
-        # Parse dates for output format; fail if bad dates remain after filter_by_date
+        # Parse dates for output format; fail if bad dates remain after filter_by_date #TODO 
         dates = pd.to_datetime(data["today"], errors="coerce")
         if dates.isna().any():
             bad = int(dates.isna().sum())
@@ -297,10 +301,15 @@ class ODKToField:
         })
         # TODO A lot of things can still go wrong here, and we have no error handling for that at all. 
         # We currently assume the file will always be formated perfectly. 
+        # Secont #TODO is that we do not actually add the comment anywhere - but we should, if it is something 
+        # you would want to keep. 
         
         return field_data
 
     def save_csv_output(self, field_data: pd.DataFrame, duplicates: pd.Series, output_dir: str):
+        """Iterates over all categories in the data and writes a csv file for each category, a second one
+        if this category contains any duplicate identifiers. Duplicates are not neccessarily of the same
+        category."""
         # Since iDAI.field needs one file for each category it will import, we are saving a new csv-File 
         # for each category present in the data. If there are rows with duplicates, 
         # these are saved in a specific "duplicates" file for manual review and merging. 
@@ -340,6 +349,8 @@ class ODKToField:
                 this_cat.to_csv(out_main, index=False)
 
     def save_geodata(self, data: pd.DataFrame, output_dir: str):
+        """Transforms all geodata from EPSG:4326 to the selected CRS (see TARGET_CRS_EPSG). Writes all geodata to a 
+        single GeoJSON Feature Collection file, using identifier (from 'find_id') as a property."""
         # Filter to valid identifiers + non-empty coordinates
         valid_rows = (
             data["find_id"].notna()
@@ -373,6 +384,7 @@ class ODKToField:
         # cannot be imported by iDAI.field anyway. 
         gdf = gdf.drop(columns=["geopoint-Longitude", "geopoint-Latitude"])
 
+        # TODO: We are not reacting to duplicate identifiers here at all, which is a problem.
         selected_date = pd.to_datetime(self.date_picker.get_date()).strftime("%Y_%m_%d")
         filename = f"{selected_date}_import.Points.geojson"
         out_path = os.path.join(output_dir, filename)
