@@ -49,7 +49,7 @@ class ODKToField:
 
         # -- Log window --
         # There is some console output that can be very informative for users. We want to log this, 
-        # and display it to the users, so that they have some understanding of what goes right or wrong. 
+        # and display it to the users, so that they have some understanding of what goes right or wrong: 
         self.log_text = scrolledtext.ScrolledText(
             self.root,
             wrap=tk.WORD,
@@ -62,18 +62,20 @@ class ODKToField:
         # -- Buttons --
         button_frame = tk.Frame(self.root)
         button_frame.pack(pady=5)
+
+        # -- Date picker --
+        # We add a simple date picker, so that we may select the imported file by a specific day and are
+        # able to create specific import files for each day of work - this is important, because we do not
+        # want to duplicate imports to iDAI.field after their identifiers have been changed there and make sure 
+        # that each object is only imported once. The date picker will default to 'today'. 
+
         # --- Step 1: Workflow hint label ---
         tk.Label(
             button_frame,
             text="Step 1: Choose date →",
             font=("Arial", 10, "bold")
         ).pack(side=tk.LEFT, padx=5)
-
-        # -- Date picker FIRST --
-        # We add a simple date picker, so that we may select the imported file by a specific day and are
-        # able to create specific import files for each day of work - this is important, because we do not
-        # want to duplicate imports to iDAI.field after their identifiers have been changed there and make sure 
-        # that each object is only imported once. The date picker will default to 'today'. 
+        # -- Date picker --
         self.date_picker = DateEntry(button_frame, selectmode='day')
         self.date_picker.pack(side=tk.LEFT, padx=5, expand=True)
 
@@ -82,15 +84,22 @@ class ODKToField:
         # (re)start the process, since it can be aborted by some errors. This way, the users does not
         # have to restart the application itself to try another file or re-try the same file after fixing
         # problems. 
+        # --- Step 2: Workflow hint label ---
+        tk.Label(
+            button_frame,
+            text="Step 2: Choose File and Start Processing →",
+            font=("Arial", 10, "bold")
+        ).pack(side=tk.LEFT, padx=5)
+        # -- Pick file and start processing --
         self.start_button = tk.Button(
             button_frame,
-            text="Step 2: Process CSV file",
+            text="Start",
             command=self.run,
             font=("Arial", 12)
         )
         self.start_button.pack(side=tk.LEFT, padx=5)
 
-        # -- Quit button LAST --
+        # -- Quit button --
         self.quit_button = tk.Button(
             button_frame,
             text="Quit",
@@ -110,18 +119,16 @@ class ODKToField:
         self.log("Ready to process CSV files...")
         self.log("")
         self.log("Workflow (day-by-day export):")
-        self.log("  1) Choose a DATE (top bar)")
-        self.log("  2) Click 'Process CSV file'")
+        self.log("  1) Choose the date you want to filter for")
+        self.log("  2) Click 'Start'")
         self.log("  3) Select the ODK CSV file")
         self.log("  4) Select an output directory")
         self.log("  5) Import the generated files into Field Desktop")
         self.log("")
         self.log("Tip: The date filter ensures each survey day is exported separately.")
 
-# -- -- -- -- -- --
-# -- UI helpers --
-# -- -- -- -- -- --
     def log(self, message: str):
+        """Logs messages to the root window."""
         self.log_text.insert(tk.END, message + "\n")
         self.log_text.see(tk.END)
         self.root.update_idletasks()
