@@ -288,6 +288,7 @@ class ODKToField:
         # category = the category of resource to import (will be used to split into multiple files)
         field_data = pd.DataFrame({
             "relations.isRecordedIn": self.RECORDED_IN_DEFAULT,
+            "shortDescription": "Imported from ODK",
             "identifier": data["find_id"].astype(str),
             "scanCode": data["find_id"].astype(str),
             "date.value": data["field_date"],
