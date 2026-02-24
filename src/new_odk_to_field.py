@@ -132,14 +132,15 @@ class ODKToField:
         self.log_text.see(tk.END)
         self.root.update_idletasks()
 
-    def select_input_file(self):
+    def select_input_file(self) -> str | None:
+        """Opens the file dialog that prompts users to select the input csv-file, return the path or None if canceled."""
         return filedialog.askopenfilename(
             title="Select CSV file",
             filetypes=[("CSV files", "*.csv")]
         )
 
-    def select_output_directory(self):
-        """Select output dir; if not empty, ask whether to proceed. Uses a loop (no recursion)."""
+    def select_output_directory(self) -> str | None:
+        """Select output dir; if not empty, ask whether to proceed."""
         while True:
             output_dir = filedialog.askdirectory(title = "Select output directory")
             if not output_dir:
@@ -183,7 +184,7 @@ class ODKToField:
             return False
         return True
 
-    def filter_rows_without_find_id(self, data: pd.DataFrame) -> pd.DataFrame:
+    def filter_rows_without_find_id(self, data: pd.DataFrame) -> pd.DataFrame | None:
         """Remove rows without a real identifier (NaN, empty string, whitespace)."""
         data["find_id"] = data["find_id"].fillna("").astype(str).str.strip()
 
