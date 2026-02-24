@@ -31,7 +31,6 @@ class ODKToField:
     }
 
     REQUIRED_KEYS = [
-        "comment",
         "find_id",
         "today",
         "find_quantity",
@@ -209,6 +208,7 @@ class ODKToField:
         invalid = int(data["today"].isna().sum())
         if invalid > 0:
             self.log(f"Warning: {invalid} row(s) have invalid dates in column 'today' and will be ignored.")
+            # If they are ignored here, we do not need to consider that later at all! TODO
 
         result = data[data["today"].dt.date == selected].copy()
 
@@ -261,13 +261,8 @@ class ODKToField:
 # -- Build export formats --
 # -- -- -- -- -- -- -- -- --
     def build_field_data(self, data: pd.DataFrame) -> pd.DataFrame | None:
-        """Structure the data as required by iDAI.field. Formats the date, concatenates some comments, and sets the 
+        """Structure the data as required by iDAI.field. Formats the date, and sets the 
         appropriate names for the columns in the resulting data."""
-        # This is actually nor reasonable and does not reflect your data at all. #TODO
-        data["comment"] = data["comment"].fillna("").astype(str)
-        data["comment"] = data["comment"].str.replace(
-            "odk", "data imported from odk", regex=False
-        )
     
         # Parse dates for output format; fail if bad dates remain after filter_by_date #TODO 
         dates = pd.to_datetime(data["today"], errors="coerce")
@@ -306,8 +301,6 @@ class ODKToField:
         })
         # TODO A lot of things can still go wrong here, and we have no error handling for that at all. 
         # We currently assume the file will always be formated perfectly. 
-        # Secont #TODO is that we do not actually add the comment anywhere - but we should, if it is something 
-        # you would want to keep. 
         
         return field_data
 
