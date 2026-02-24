@@ -317,23 +317,27 @@ class ODKToField:
                 continue
 
             filename = f"{selected_date}_import.{category}.csv"
-            filename_duplicates = f"{selected_date}_duplicates.{category}.csv"
+            out_path = os.path.join(output_dir, filename)
 
             dupl_idx = this_cat["identifier"].isin(duplicates.index)
 
+            # If you arrive here and notice that this will write 0 resources to the import csv if the only 
+            # row for that category contains a duplicate: I know. 
+            # It is not ideal, but also an edge case and I do not want to guard against it, because another check 
+            # would bring complexity with no real benefit. I think it is fine to ignore this.
+            # Let's call it a feature: I will prepare a new empty table for you to copy your cleaned up data into. ;) 
             if dupl_idx.any():
-                out_main = os.path.join(output_dir, filename)
-                out_dupl = os.path.join(output_dir, filename_duplicates)
+                filename_dupl = f"{selected_date}_duplicates.{category}.csv"
+                out_path_dupl = os.path.join(output_dir, filename_dupl)
 
                 self.log(f"Writing {len(this_cat.loc[~dupl_idx])} resources to '{filename}'")
-                this_cat.loc[~dupl_idx].to_csv(out_main, index=False)
+                this_cat.loc[~dupl_idx].to_csv(out_path, index=False)
 
-                self.log(f"Writing {len(this_cat.loc[dupl_idx])} resources to '{filename_duplicates}'")
-                this_cat.loc[dupl_idx].to_csv(out_dupl, index=False)
+                self.log(f"Writing {len(this_cat.loc[dupl_idx])} resources to '{filename_dupl}'")
+                this_cat.loc[dupl_idx].to_csv(out_path_dupl, index=False)
             else:
-                out_main = os.path.join(output_dir, filename)
                 self.log(f"Writing {len(this_cat)} resources to '{filename}'")
-                this_cat.to_csv(out_main, index=False)
+                this_cat.to_csv(out_path, index=False)
 
     def save_geodata(self, data: pd.DataFrame, duplicates: pd.Series, output_dir: str):
         """Transforms all geodata from EPSG:4326 to the selected CRS (see TARGET_CRS_EPSG). Writes all geodata to a 
