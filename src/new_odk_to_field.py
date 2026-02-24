@@ -1,12 +1,16 @@
+# File System Operations
 import os
 import sys
+
+# UI
 import tkinter as tk
 from tkinter import filedialog, messagebox, scrolledtext
+from tkcalendar import DateEntry
 
+# Geo
 import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Point
-from tkcalendar import DateEntry
 
 
 class ODKToField:
