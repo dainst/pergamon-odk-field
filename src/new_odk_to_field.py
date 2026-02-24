@@ -14,6 +14,10 @@ from shapely.geometry import Point
 
 
 class ODKToField:
+    # If we ever want this to be truly configurable and expandable, we may outsource the 
+    # config here to files that can be read by a resulting exe, so that users would not need
+    # to build it from the code. However, this is clearly not the current use case and I think 
+    # we best leave it as it is right now. 
     # -- Config / defaults --
     RECORDED_IN_DEFAULT = "ODK Import Data"
     TARGET_CRS_EPSG = 32635 # UTM zone 35N; adjust if needed
@@ -43,7 +47,7 @@ class ODKToField:
         
     def __init__(self, root): 
         self.root = root
-        self.root.title("ODK → Field Dekstop Helper")
+        self.root.title("ODK → Field Desktop Helper")
         self.root.minsize(800, 300)
 
         # -- Log window --
@@ -270,7 +274,8 @@ class ODKToField:
 # -- -- -- -- -- -- -- -- --
     def build_field_data(self, data: pd.DataFrame) -> pd.DataFrame | None:
         """Structure the data as required by iDAI.field. Formats the date, and sets the 
-        appropriate names for the columns in the resulting data."""
+        appropriate names for the columns in the resulting data. This method will require a
+        pre-formatted date as produced by filter_by_date()."""
 
         data = data.copy()
         data["field_date"] = data["today"].dt.strftime("%d.%m.%Y")
@@ -288,16 +293,18 @@ class ODKToField:
             "date.value": data["field_date"],
             "date.endValue": "",
             "date.isRange": "false",
+            # We could coerce find_quantity to integer, but iDAI.field will warn accordingly on import. 
+            # Since ODK-Exports are automated, the user would need to address this mismatch in the
+            # resulting import file for iDAI.field either way. This, no type checking and coercion here.
+            # We let Field handle it.  
             "amount": data["find_quantity"],
             "spatialLocation": (
-                "" + data["find_id"].astype(str) +
+                "ODK Find_ID:" + data["find_id"].astype(str) +
                 "\nGround Visibility: " + data["ground_visibility"].astype(str) +
                 "\nGeopoint Accuracy: " + data["geopoint-Accuracy"].astype(str)
             ),
             "category": data["category"]
         })
-        # TODO A lot of things can still go wrong here, and we have no error handling for that at all. 
-        # We currently assume the file will always be formated perfectly. 
         
         return field_data
 
@@ -309,8 +316,6 @@ class ODKToField:
         # for each category present in the data. If there are rows with duplicates, 
         # these are saved in a specific "duplicates" file for manual review and merging. 
         # The files are named so that iDAI.field will automatically recognize the category from the file name. 
-        self.log(f"Writing CSV output files to directory: {output_dir}")
-
         selected_date = pd.to_datetime(self.date_picker.get_date()).strftime("%Y_%m_%d")
         
         # stable category order
@@ -405,6 +410,12 @@ class ODKToField:
 # -- Main action --
 # -- -- -- -- -- -- 
     def run(self):
+        # Please note: All methods in this class are currently meant to run in the order that they are
+        # referenced here in the run() method. Now, this is not actually good practice. They should 
+        # probably be private methods instead. However, we do not expect anyone to use it in such a 
+        # way that this oversight would impact anyone.        
+        self.start_button.config(state=tk.DISABLED)
+
         input_csv_path = self.select_input_file()
         if not input_csv_path:
             self.log("Cancelled: No file selected.")
@@ -430,14 +441,18 @@ class ODKToField:
             return
         
         # Here, we select the content of the csv file by the date selected in the date picker. 
-        # This allows imports of only a single day. 
+        # This allows imports of only a single day. We should filter by date first, because otherwise all the following 
+        # messages would be confusing to users.
         self.log(f"Filtering for date: {self.date_picker.get_date()}")
         data = self.filter_by_date(data)
         if data is None: 
             self.log("Processing cancelled.")
             return
 
-        # Filter empty/whitespace find_id rows
+        # Filter empty/whitespace find_id rows, because we only want to import the finds that have a scanCode and thus
+        # a find_id in iDAI.field. Normal survey points referencing finds that have been left in the field have no 
+        # place in the database. We do this after filtering by date, so users can see how many record for this day have 
+        # been skipped. 
         data = self.filter_rows_without_find_id(data)
         if data is None:
             self.log("Processing cancelled.")
@@ -469,6 +484,8 @@ class ODKToField:
         if not output_dir:
             self.log("Cancelled. No output directory selected")
             return
+
+        self.log(f"Writing CSV and GeoJSON output files to directory: {output_dir}")
         
         try: 
             self.save_csv_output(field_data, duplicates, output_dir)
@@ -486,6 +503,8 @@ class ODKToField:
 
         self.log(f"Processing file '{os.path.basename(input_csv_path)}' finished.")
         messagebox.showinfo("Success", "CSV processed successfully.")
+        self.start_button.config(state=tk.NORMAL)
+
         return
 
     def shutdown(self):
@@ -495,7 +514,7 @@ class ODKToField:
 def main():
     root = tk.Tk()
     app = ODKToField(root)
-    root.mainloop()  # Keep tkinter running
+    root.mainloop() 
 
 
 if __name__ == "__main__":
