@@ -143,9 +143,9 @@ import_df = pd.DataFrame({
     "amount": data["find_quantity"],
     "spatialLocation": (
             data["find_id"].astype(str)
-            + "\nGround Visibility: "
+            + ", Ground Visibility: "
             + data["ground_visibility"].astype(str)
-            + "\nGeopoint Accuracy: "
+            + ", Geopoint Accuracy: "
             + data["geopoint-Accuracy"].astype(str)),
     "category": data["category"],})
 

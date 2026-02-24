@@ -300,8 +300,8 @@ class ODKToField:
             "amount": data["find_quantity"],
             "spatialLocation": (
                 "ODK Find_ID:" + data["find_id"].astype(str) +
-                "\nGround Visibility: " + data["ground_visibility"].astype(str) +
-                "\nGeopoint Accuracy: " + data["geopoint-Accuracy"].astype(str)
+                ", Ground Visibility: " + data["ground_visibility"].astype(str) +
+                ", Geopoint Accuracy: " + data["geopoint-Accuracy"].astype(str)
             ),
             "category": data["category"]
         })
