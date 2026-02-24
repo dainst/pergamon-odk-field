@@ -205,10 +205,10 @@ class ODKToField:
         selected = pd.to_datetime(self.date_picker.get_date()).date()
 
         data["today"] = pd.to_datetime(data["today"], errors="coerce")
-        invalid = int(data["today"].isna().sum())
-        if invalid > 0:
-            self.log(f"Warning: {invalid} row(s) have invalid dates in column 'today' and will be ignored.")
-            # If they are ignored here, we do not need to consider that later at all! TODO
+        invalid_sum = int(data["today"].isna().sum())
+        if invalid_sum > 0:
+            invalid_ids = data["find_id"].loc[data["today"].isna()].str.cat(sep = ", ")
+            self.log(f"Warning: {invalid_sum} row(s) have invalid dates in column 'today' and will be ignored: {invalid_ids} ")
 
         result = data[data["today"].dt.date == selected].copy()
 
@@ -263,20 +263,9 @@ class ODKToField:
     def build_field_data(self, data: pd.DataFrame) -> pd.DataFrame | None:
         """Structure the data as required by iDAI.field. Formats the date, and sets the 
         appropriate names for the columns in the resulting data."""
-    
-        # Parse dates for output format; fail if bad dates remain after filter_by_date #TODO 
-        dates = pd.to_datetime(data["today"], errors="coerce")
-        if dates.isna().any():
-            bad = int(dates.isna().sum())
-            self.log(f"Error: {bad} invalid date(s) in column 'today' after filtering.")
-            messagebox.showerror(
-                title="Could not process CSV file",
-                message="Invalid dates in column 'today'. Please fix the CSV and try again.",
-            )
-            return None
 
         data = data.copy()
-        data["field_date"] = dates.dt.strftime("%d.%m.%Y")
+        data["field_date"] = data["today"].dt.strftime("%d.%m.%Y")
 
         # Build the import DataFrame according to the columns iDAI.fields csv-Import is expecting: 
         # identifier = unique name, relations.isRecordedIn = Trench/Operation, 
