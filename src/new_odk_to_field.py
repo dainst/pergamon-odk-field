@@ -335,7 +335,7 @@ class ODKToField:
                 self.log(f"Writing {len(this_cat)} resources to '{filename}'")
                 this_cat.to_csv(out_main, index=False)
 
-    def save_geodata(self, data: pd.DataFrame, output_dir: str):
+    def save_geodata(self, data: pd.DataFrame, duplicates: pd.Series, output_dir: str):
         """Transforms all geodata from EPSG:4326 to the selected CRS (see TARGET_CRS_EPSG). Writes all geodata to a 
         single GeoJSON Feature Collection file, using identifier (from 'find_id') as a property."""
         # Filter to valid identifiers + non-empty coordinates
@@ -371,13 +371,23 @@ class ODKToField:
         # cannot be imported by iDAI.field anyway. 
         gdf = gdf.drop(columns=["geopoint-Longitude", "geopoint-Latitude"])
 
-        # TODO: We are not reacting to duplicate identifiers here at all, which is a problem.
         selected_date = pd.to_datetime(self.date_picker.get_date()).strftime("%Y_%m_%d")
         filename = f"{selected_date}_import.Points.geojson"
         out_path = os.path.join(output_dir, filename)
 
-        self.log(f"Writing {len(gdf)} features to '{filename}'")
-        gdf.to_file(out_path, driver="GeoJSON")
+        dupl_idx = gdf["identifier"].isin(duplicates.index)
+        if dupl_idx.any():
+            filename_dupl = f"{selected_date}_duplicates.Points.geojson"
+            out_path_dupl = os.path.join(output_dir, filename_dupl)
+            # All duplicates are written to a file, which should make it easier to sort them out manually in a text-editor. 
+            self.log(f"Writing {len(gdf.loc[dupl_idx])} features to '{filename_dupl}'")
+            gdf.loc[dupl_idx].to_file(out_path_dupl, driver="GeoJSON")
+            # And the rows which do not contain duplicates are written to the "normal" import file. 
+            self.log(f"Writing {len(gdf.loc[~dupl_idx])} features to '{filename}'")
+            gdf.loc[~dupl_idx].to_file(out_path, driver="GeoJSON")
+        else: 
+            self.log(f"Writing {len(gdf)} features to '{filename}'")
+            gdf.to_file(out_path, driver="GeoJSON")
 
 # -- -- -- -- -- --
 # -- Main action --
@@ -456,7 +466,7 @@ class ODKToField:
             return
 
         try: 
-            self.save_geodata(data, output_dir)
+            self.save_geodata(data, duplicates, output_dir)
         except Exception as e:
             self.log(f"Error: Could not save geodata - {e}")
             messagebox.showerror(title = "Error", message = f"Could not save geodata.")
