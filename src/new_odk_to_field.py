@@ -207,8 +207,11 @@ class ODKToField:
         data["today"] = pd.to_datetime(data["today"], errors="coerce")
         invalid_sum = int(data["today"].isna().sum())
         if invalid_sum > 0:
-            invalid_ids = data["find_id"].loc[data["today"].isna()].str.cat(sep = ", ")
-            self.log(f"Warning: {invalid_sum} row(s) have invalid dates in column 'today' and will be ignored: {invalid_ids} ")
+            invalid_ids = data["find_id"].loc[data["today"].isna()].fillna("NA").str.cat(sep = ", ")
+            self.log(f"Warning: {invalid_sum} row(s) have invalid dates in column 'today' and will be ignored: {invalid_ids}.")
+        # Consider: It may not be helpful to add the find_ids here, and we could instead use the rows. 
+        # But: That makes the relevant data harder to find. Plus: I am sure this never happens with exports from 
+        # ODK, since date it auto-generated. Therefore: No use in putting more effort into this topic.
 
         result = data[data["today"].dt.date == selected].copy()
 
