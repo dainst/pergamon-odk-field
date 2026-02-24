@@ -122,6 +122,11 @@ data["category"] = data["find_type"].replace(category_mapping)
 # mapping will be replaced. 
 # (Beware: This can lead to *a lot* of csv-files if you have many different values in that column.)
 
+# ----------Handling dates ---------------------------------------------------------------------------------------------
+# We do not want the script to fail if any date is invalid. We use the errors="coerce" argument here to see if it can be 
+# coerced, and if not later on the date will simply be empty in the import file. 
+data["today"] = pd.to_datetime(data["today"], errors="coerce")
+
 
 # ----------Set up how the csv you're importing in iDAI.field will look-------------------------------------------------
 # Build the import DataFrame according to the columns iDAI.fields csv-Import is expecting: 
@@ -137,7 +142,7 @@ import_df = pd.DataFrame({
     "shortDescription": "Imported from ODK",
     "identifier": data["find_id"].astype(str),
     "scanCode": data["find_id"].astype(str),
-    "date.value": pd.to_datetime(data["today"]).dt.strftime("%d.%m.%Y"),
+    "date.value": data["today"].dt.strftime("%d.%m.%Y"),
     "date.endValue": "",
     "date.isRange": "false",
     "amount": data["find_quantity"],
