@@ -225,10 +225,14 @@ class ODKToField:
         `CATEGORY_MAPPING_DEFAULT`, with the names of the corresponding categories in iDAI.field."""
         mapping = dict(self.CATEGORY_MAPPING_DEFAULT)
 
-        # Make find_type safe
-        data["find_type"] = data["find_type"].fillna("").astype(str).str.strip()
+        # If 'find_type' is not set, we set it so "missing". This way, it will be clearly communicated that
+        # some rows have "missing" find_types - which is something we do not want either way, because everything
+        # needs a category, and the user will be notified and prompted, and the category can be set as "Find" 
+        # same as for other unsopported values. I put the "-" around "missing" to make it look a little more
+        # technical - so it's clear this is generated. 
+        data["find_type"] = data["find_type"].fillna("-missing-").astype(str).str.strip()
 
-        present_categories = set(data["find_type"]) - {""}
+        present_categories = set(data["find_type"])
         undefined = sorted(present_categories - set(mapping.keys()))
         if undefined:
             self.log(
