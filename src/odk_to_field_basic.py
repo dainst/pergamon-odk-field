@@ -152,7 +152,8 @@ import_df = pd.DataFrame({
     "date.isRange": "false",
     "amount": data["find_quantity"],
     "spatialLocation": (
-            data["find_id"].astype(str)
+            "Imported from ODK:" 
+            + data["find_id"].astype(str)
             + ", Ground Visibility: "
             + data["ground_visibility"].astype(str)
             + ", Geopoint Accuracy: "
