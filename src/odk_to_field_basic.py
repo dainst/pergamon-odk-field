@@ -101,6 +101,34 @@ if missing_keys:
         message=f"Could not process file, missing columns:\n {', '.join(missing_keys)} ")
     shutdown()
 
+
+# ----------Select an output directory----------------------------------------------------------------------------------
+# Here, we are opening another file dialog that will prompt you to select the directory you want to save your files
+# in. You won't need to change this. 
+output_dir = filedialog.askdirectory(title = "Select output directory")
+
+
+# ----------Handling empty and duplicate 'find_id's------------------------------------------------------------------------
+# First, we need to remove all rows that do not have a "find_id", as we cannot import anything that 
+# will not have an identifer in iDAI.field:
+data["find_id"] = data["find_id"].fillna("").astype(str).str.strip()
+data = data[data["find_id"] != ""]
+
+# Find duplicate find_id and warn if duplicates exist. Since we use the find_id as the QR-Code and 
+# the identifier in iDAI.field, and iDAI.field needs the two to be unique, we are just checking if 
+# your data has more than one entry for each find_id:
+duplicates = data["find_id"].value_counts()
+duplicates = duplicates[duplicates > 1]
+if duplicates.count() > 0:
+    duplicates.to_csv(f'{output_dir}/duplicates.txt', index=True)
+    messagebox.showwarning(
+        title = "Duplicate 'find_id's", 
+        message = "The CSV-File contains duplicates - check 'duplicates.txt' in your output directory."
+    )
+# You can then write down the duplicate "find_id"s and delete or rename them in the output files.
+
+
+
 # ----------Defining 'categories' for iDAI.field------------------------------------------------------------------------
 # We have a pre-defined set of values for find_type which needs to be translated into iDAI.field 
 # terminology, conforming to the pergamongrabung-1 project configuration. 
@@ -159,31 +187,6 @@ import_df = pd.DataFrame({
             + ", Geopoint Accuracy: "
             + data["geopoint-Accuracy"].astype(str)),
     "category": data["category"],})
-
-# -- Duplicates for output splitting --
-scan_counts = import_df["scanCode"].value_counts()
-duplicates = scan_counts[scan_counts > 1]
-
-
-# ----------Select an output directory----------------------------------------------------------------------------------
-# Here, we are opening another file dialog that will prompt you to select the directory you want to save your files
-# in. You won't need to change this. 
-output_dir = filedialog.askdirectory(title = "Select output directory")
-
-
-# ----------Checking for duplicates------------------------------------------------------------------------
-# Find duplicate find_id and warn if duplicates exist. Since we use the find_id as the QR-Code and 
-# the identifier in iDAI.field, and iDAI.field needs the two to be unique, we are just checking if 
-# your data has more than one entry for each find_id:
-duplicates = data["find_id"].value_counts()
-duplicates = duplicates[duplicates > 1]
-if duplicates.count() > 0:
-    duplicates.to_csv(f'{output_dir}/duplicates.txt', index=True)
-    messagebox.showwarning(
-        title = "Duplicate 'find_id's", 
-        message = "The CSV-File contains duplicates - check 'duplicates.txt' in your output directory."
-    )
-# You can then write down the duplicate "find_id"s and delete or rename them in the output files.
 
 
 # ----------Save a new CSV for each category----------------------------------------------------------------------------
