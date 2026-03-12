@@ -19,9 +19,14 @@ import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Point
 
-# Beginner friendly settings (edit these)
-RECORDED_IN = "ODK Import Data" # FieldDesktop survey area to import into
+# Beginner friendly settings (edit these):
+# RECORDED_IN sets the Operation in Field Desktop data should be imported to. This is expected to be
+# any of the Operation-subcategories which allow adding Find-resources to them directly. 
+# The resource (in this case "ODK Import Data") has to exist, otherwise imports will fail. 
+RECORDED_IN = "ODK Import Data"
 OUTPUT_GEOJSON_NAME = "Field.Points"
+# Additionally, please note that you have to import the Geometry files (geojson) *after* the csv-files, 
+# if only resources that already exist in Field Desktop can get a Geomtry via the import. 
 
 root = tk.Tk()
 root.withdraw()

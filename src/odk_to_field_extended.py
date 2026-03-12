@@ -19,6 +19,9 @@ class ODKToField:
     # to build it from the code. However, this is clearly not the current use case and I think 
     # we best leave it as it is right now. 
     # -- Config / defaults --
+    # RECORDED_IN sets the Operation in Field Desktop data should be imported to. This is expected to be
+    # any of the Operation-subcategories which allow adding Find-resources to them directly. 
+    # The resource (in this case "ODK Import Data") has to exist, otherwise imports will fail. 
     RECORDED_IN_DEFAULT = "ODK Import Data"
     TARGET_CRS_EPSG = 32635 # UTM zone 35N; adjust if needed
 
