@@ -31,15 +31,15 @@ source venv/bin/activate
 pip install -r requirements.txt 
 
 # Either: run the simple transformer script
-python3 src/odk_to_field.py
+python3 src/odk_to_field_basic.py
 
 # Or: run the extended script
-python3 src/new_odk_to_field.py
+python3 src/odk_to_field_extended.py
 ```
 
-The simple transformer script `odk_to_field.py` is meant as a basic introduction for beginners: Here you can more easily add and remove functionality, or change how and what data is processed, without the need to understand as much about python programming. 
+The simple transformer script `odk_to_field_basic.py` is meant as a basic introduction for beginners: Here you can more easily add and remove functionality, or change how and what data is processed, without the need to understand as much about python programming. 
 
-The "new" version (`new_odk_to_field.py`) is designed for use within the workflow and geared more towards a better user experience at the cost of being less easy to understand from a scripting perspective. 
+The "new" version (`odk_to_field_extended.py`) is designed for use within the workflow and geared more towards a better user experience at the cost of being less easy to understand from a scripting perspective. 
 
 
 # Further Information

@@ -12,6 +12,7 @@
 # ----------Imports and UI-------------------------------------------------------------------------
 import os
 import sys
+import csv
 import tkinter as tk
 from tkinter import filedialog, messagebox
 
@@ -19,9 +20,14 @@ import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Point
 
-# Beginner friendly settings (edit these)
-RECORDED_IN = "ODK Import Data" # FieldDesktop survey area to import into
+# Beginner friendly settings (edit these):
+# RECORDED_IN sets the Operation in Field Desktop data should be imported to. This is expected to be
+# any of the Operation-subcategories which allow adding Find-resources to them directly. 
+# The resource (in this case "ODK Import Data") has to exist, otherwise imports will fail. 
+RECORDED_IN = "ODK Import Data"
 OUTPUT_GEOJSON_NAME = "Field.Points"
+# Additionally, please note that you have to import the Geometry files (geojson) *after* the csv-files, 
+# if only resources that already exist in Field Desktop can get a Geomtry via the import. 
 
 root = tk.Tk()
 root.withdraw()
@@ -96,6 +102,34 @@ if missing_keys:
         message=f"Could not process file, missing columns:\n {', '.join(missing_keys)} ")
     shutdown()
 
+
+# ----------Select an output directory----------------------------------------------------------------------------------
+# Here, we are opening another file dialog that will prompt you to select the directory you want to save your files
+# in. You won't need to change this. 
+output_dir = filedialog.askdirectory(title = "Select output directory")
+
+
+# ----------Handling empty and duplicate 'find_id's------------------------------------------------------------------------
+# First, we need to remove all rows that do not have a "find_id", as we cannot import anything that 
+# will not have an identifer in iDAI.field:
+data["find_id"] = data["find_id"].fillna("").astype(str).str.strip()
+data = data[data["find_id"] != ""]
+
+# Find duplicate find_id and warn if duplicates exist. Since we use the find_id as the QR-Code and 
+# the identifier in iDAI.field, and iDAI.field needs the two to be unique, we are just checking if 
+# your data has more than one entry for each find_id:
+duplicates = data["find_id"].value_counts()
+duplicates = duplicates[duplicates > 1]
+if duplicates.count() > 0:
+    duplicates.to_csv(f'{output_dir}/duplicates.txt', index=True, quoting=csv.QUOTE_ALL)
+    messagebox.showwarning(
+        title = "Duplicate 'find_id's", 
+        message = "The CSV-File contains duplicates - check 'duplicates.txt' in your output directory."
+    )
+# You can then write down the duplicate "find_id"s and delete or rename them in the output files.
+
+
+
 # ----------Defining 'categories' for iDAI.field------------------------------------------------------------------------
 # We have a pre-defined set of values for find_type which needs to be translated into iDAI.field 
 # terminology, conforming to the pergamongrabung-1 project configuration. 
@@ -122,6 +156,11 @@ data["category"] = data["find_type"].replace(category_mapping)
 # mapping will be replaced. 
 # (Beware: This can lead to *a lot* of csv-files if you have many different values in that column.)
 
+# ----------Handling dates ---------------------------------------------------------------------------------------------
+# We do not want the script to fail if any date is invalid. We use the errors="coerce" argument here to see if it can be 
+# coerced, and if not later on the date will simply be empty in the import file. 
+data["today"] = pd.to_datetime(data["today"], errors="coerce")
+
 
 # ----------Set up how the csv you're importing in iDAI.field will look-------------------------------------------------
 # Build the import DataFrame according to the columns iDAI.fields csv-Import is expecting: 
@@ -137,42 +176,18 @@ import_df = pd.DataFrame({
     "shortDescription": "Imported from ODK",
     "identifier": data["find_id"].astype(str),
     "scanCode": data["find_id"].astype(str),
-    "date.value": pd.to_datetime(data["today"]).dt.strftime("%d.%m.%Y"),
+    "date.value": data["today"].dt.strftime("%d.%m.%Y"),
     "date.endValue": "",
     "date.isRange": "false",
     "amount": data["find_quantity"],
     "spatialLocation": (
-            data["find_id"].astype(str)
-            + "\nGround Visibility: "
+            "Imported from ODK: " 
+            + data["find_id"].astype(str)
+            + ", Ground Visibility: "
             + data["ground_visibility"].astype(str)
-            + "\nGeopoint Accuracy: "
+            + ", Geopoint Accuracy: "
             + data["geopoint-Accuracy"].astype(str)),
     "category": data["category"],})
-
-# -- Duplicates for output splitting --
-scan_counts = import_df["scanCode"].value_counts()
-duplicates = scan_counts[scan_counts > 1]
-
-
-# ----------Select an output directory----------------------------------------------------------------------------------
-# Here, we are opening another file dialog that will prompt you to select the directory you want to save your files
-# in. You won't need to change this. 
-output_dir = filedialog.askdirectory(title = "Select output directory")
-
-
-# ----------Checking for duplicates------------------------------------------------------------------------
-# Find duplicate find_id and warn if duplicates exist. Since we use the find_id as the QR-Code and 
-# the identifier in iDAI.field, and iDAI.field needs the two to be unique, we are just checking if 
-# your data has more than one entry for each find_id:
-duplicates = data["find_id"].value_counts()
-duplicates = duplicates[duplicates > 1]
-if duplicates.count() > 0:
-    duplicates.to_csv(f'{output_dir}/duplicates.txt', index=True)
-    messagebox.showwarning(
-        title = "Duplicate 'find_id's", 
-        message = "The CSV-File contains duplicates - check 'duplicates.txt' in your output directory."
-    )
-# You can then write down the duplicate "find_id"s and delete or rename them in the output files.
 
 
 # ----------Save a new CSV for each category----------------------------------------------------------------------------
@@ -193,7 +208,7 @@ for category in import_df["category"].dropna().unique():
     # But since we do not want to accidentally overwrite files that you might still need, this will ask you 
     # any time the file we are trying to write already exists. 
     try:
-        this_cat.to_csv(f'{output_dir}/{filename}', index=False, mode="x")
+        this_cat.to_csv(f'{output_dir}/{filename}', index=False, mode="x", quoting=csv.QUOTE_ALL)
         # 'mode="x" ' tells the function to throw a "FileExistsError" if the file name it is trying to write is already
         # present in the directory:
     except FileExistsError:
@@ -204,7 +219,7 @@ for category in import_df["category"].dropna().unique():
         )
         if proceed:
             # You also need to change the file name here:
-            this_cat.to_csv(f'{output_dir}/{filename}', index=False, mode="w")
+            this_cat.to_csv(f'{output_dir}/{filename}', index=False, mode="w", quoting=csv.QUOTE_ALL)
         
 
 # ----------Processing the Geodata--------------------------------------------------------------------------------------
@@ -213,7 +228,7 @@ for category in import_df["category"].dropna().unique():
 geodata = data.loc[data["find_id"] != "", ["geopoint-Longitude", "geopoint-Latitude", "find_id"]]
 # We have to rename the "find_id" to identifier again, because that is what iDAI.field needs as a property for each 
 # feature in the resulting GeoJSON file. 
-geodata = geodata.rename({"find_id": "identifier"})
+geodata = geodata.rename(columns={"find_id": "identifier"})
 # And then we set the Coordinate Reference System for our original data. Since ODK saved it as EPSG:4326, this is 
 # what we use here. 
 geodata = gpd.GeoDataFrame(
