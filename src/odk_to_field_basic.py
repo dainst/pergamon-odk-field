@@ -228,7 +228,7 @@ for category in import_df["category"].dropna().unique():
 geodata = data.loc[data["find_id"] != "", ["geopoint-Longitude", "geopoint-Latitude", "find_id"]]
 # We have to rename the "find_id" to identifier again, because that is what iDAI.field needs as a property for each 
 # feature in the resulting GeoJSON file. 
-geodata = geodata.rename({"find_id": "identifier"})
+geodata = geodata.rename(columns={"find_id": "identifier"})
 # And then we set the Coordinate Reference System for our original data. Since ODK saved it as EPSG:4326, this is 
 # what we use here. 
 geodata = gpd.GeoDataFrame(
