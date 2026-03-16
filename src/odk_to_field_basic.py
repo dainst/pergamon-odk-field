@@ -180,7 +180,7 @@ import_df = pd.DataFrame({
     "date.isRange": "false",
     "amount": data["find_quantity"],
     "spatialLocation": (
-            "Imported from ODK:" 
+            "Imported from ODK: " 
             + data["find_id"].astype(str)
             + ", Ground Visibility: "
             + data["ground_visibility"].astype(str)
