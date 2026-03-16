@@ -12,6 +12,7 @@
 # ----------Imports and UI-------------------------------------------------------------------------
 import os
 import sys
+import csv
 import tkinter as tk
 from tkinter import filedialog, messagebox
 
@@ -120,7 +121,7 @@ data = data[data["find_id"] != ""]
 duplicates = data["find_id"].value_counts()
 duplicates = duplicates[duplicates > 1]
 if duplicates.count() > 0:
-    duplicates.to_csv(f'{output_dir}/duplicates.txt', index=True)
+    duplicates.to_csv(f'{output_dir}/duplicates.txt', index=True, quoting=csv.QUOTE_ALL)
     messagebox.showwarning(
         title = "Duplicate 'find_id's", 
         message = "The CSV-File contains duplicates - check 'duplicates.txt' in your output directory."
@@ -207,7 +208,7 @@ for category in import_df["category"].dropna().unique():
     # But since we do not want to accidentally overwrite files that you might still need, this will ask you 
     # any time the file we are trying to write already exists. 
     try:
-        this_cat.to_csv(f'{output_dir}/{filename}', index=False, mode="x")
+        this_cat.to_csv(f'{output_dir}/{filename}', index=False, mode="x", quoting=csv.QUOTE_ALL)
         # 'mode="x" ' tells the function to throw a "FileExistsError" if the file name it is trying to write is already
         # present in the directory:
     except FileExistsError:
@@ -218,7 +219,7 @@ for category in import_df["category"].dropna().unique():
         )
         if proceed:
             # You also need to change the file name here:
-            this_cat.to_csv(f'{output_dir}/{filename}', index=False, mode="w")
+            this_cat.to_csv(f'{output_dir}/{filename}', index=False, mode="w", quoting=csv.QUOTE_ALL)
         
 
 # ----------Processing the Geodata--------------------------------------------------------------------------------------
