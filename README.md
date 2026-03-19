@@ -55,7 +55,7 @@ To build the standalone executable on your operating system of choice run the fo
 ```python 
 # add pyinstaller to your venv (note: it is only used for building the executable and thus not in the requirements.txt)
 pip install pyinstaller
-pyinstaller --onefile --windowed src/odk_to_field_extended.py 
+pyinstaller --onefile --windowed --collect-submodules pyogrio src/odk_to_field_extended.py 
 ```
 
 The executable (for your current operating system) will be located in `/dist/`. 
