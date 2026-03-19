@@ -1,9 +1,9 @@
 __version__ = "0.1.0.9000"
 
-
-# File System Operations
+# File & File System Operations
 import os
 import sys
+import csv
 
 # UI
 import tkinter as tk
@@ -311,7 +311,7 @@ class ODKToField:
             # We let Field handle it.  
             "amount": data["find_quantity"],
             "spatialLocation": (
-                "Imported from ODK:" + data["find_id"].astype(str) +
+                "Imported from ODK: " + data["find_id"].astype(str) +
                 ", Ground Visibility: " + data["ground_visibility"].astype(str) +
                 ", Geopoint Accuracy: " + data["geopoint-Accuracy"].astype(str)
             ),
@@ -356,13 +356,13 @@ class ODKToField:
                 out_path_dupl = os.path.join(output_dir, filename_dupl)
 
                 self.log(f"Writing {len(this_cat.loc[~dupl_idx])} resources to '{filename}'")
-                this_cat.loc[~dupl_idx].to_csv(out_path, index=False)
+                this_cat.loc[~dupl_idx].to_csv(out_path, index=False, quoting=csv.QUOTE_ALL)
 
                 self.log(f"Writing {len(this_cat.loc[dupl_idx])} resources to '{filename_dupl}'")
-                this_cat.loc[dupl_idx].to_csv(out_path_dupl, index=False)
+                this_cat.loc[dupl_idx].to_csv(out_path_dupl, index=False, quoting=csv.QUOTE_ALL)
             else:
                 self.log(f"Writing {len(this_cat)} resources to '{filename}'")
-                this_cat.to_csv(out_path, index=False)
+                this_cat.to_csv(out_path, index=False, quoting=csv.QUOTE_ALL)
 
     def save_geodata(self, data: pd.DataFrame, duplicates: pd.Series, output_dir: str):
         """Transforms all geodata from EPSG:4326 to the selected CRS (see TARGET_CRS_EPSG). Writes all geodata to a 

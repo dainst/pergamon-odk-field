@@ -16,6 +16,7 @@ __version__ = "0.1.0.9000"
 # ----------Imports and UI-------------------------------------------------------------------------
 import os
 import sys
+import csv
 import tkinter as tk
 from tkinter import filedialog, messagebox
 
@@ -126,7 +127,7 @@ data = data[data["find_id"] != ""]
 duplicates = data["find_id"].value_counts()
 duplicates = duplicates[duplicates > 1]
 if duplicates.count() > 0:
-    duplicates.to_csv(f'{output_dir}/duplicates.txt', index=True)
+    duplicates.to_csv(f'{output_dir}/duplicates.txt', index=True, quoting=csv.QUOTE_ALL)
     messagebox.showwarning(
         title = "Duplicate 'find_id's", 
         message = "The CSV-File contains duplicates - check 'duplicates.txt' in your output directory."
@@ -186,7 +187,7 @@ import_df = pd.DataFrame({
     "date.isRange": "false",
     "amount": data["find_quantity"],
     "spatialLocation": (
-            "Imported from ODK:" 
+            "Imported from ODK: " 
             + data["find_id"].astype(str)
             + ", Ground Visibility: "
             + data["ground_visibility"].astype(str)
@@ -213,7 +214,7 @@ for category in import_df["category"].dropna().unique():
     # But since we do not want to accidentally overwrite files that you might still need, this will ask you 
     # any time the file we are trying to write already exists. 
     try:
-        this_cat.to_csv(f'{output_dir}/{filename}', index=False, mode="x")
+        this_cat.to_csv(f'{output_dir}/{filename}', index=False, mode="x", quoting=csv.QUOTE_ALL)
         # 'mode="x" ' tells the function to throw a "FileExistsError" if the file name it is trying to write is already
         # present in the directory:
     except FileExistsError:
@@ -224,7 +225,7 @@ for category in import_df["category"].dropna().unique():
         )
         if proceed:
             # You also need to change the file name here:
-            this_cat.to_csv(f'{output_dir}/{filename}', index=False, mode="w")
+            this_cat.to_csv(f'{output_dir}/{filename}', index=False, mode="w", quoting=csv.QUOTE_ALL)
         
 
 # ----------Processing the Geodata--------------------------------------------------------------------------------------
@@ -233,7 +234,7 @@ for category in import_df["category"].dropna().unique():
 geodata = data.loc[data["find_id"] != "", ["geopoint-Longitude", "geopoint-Latitude", "find_id"]]
 # We have to rename the "find_id" to identifier again, because that is what iDAI.field needs as a property for each 
 # feature in the resulting GeoJSON file. 
-geodata = geodata.rename({"find_id": "identifier"})
+geodata = geodata.rename(columns={"find_id": "identifier"})
 # And then we set the Coordinate Reference System for our original data. Since ODK saved it as EPSG:4326, this is 
 # what we use here. 
 geodata = gpd.GeoDataFrame(
