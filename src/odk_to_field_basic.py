@@ -6,7 +6,11 @@
 # "UI" = the window that opens for a user to interact with. 
 # You can scroll down to the next heading to see where you might want or need 
 # to change things. 
-# 
+# You are working with version: 
+__version__ = "0.1.0.9000"
+# of this script.
+#
+#
 # Have fun & kolay gelsin!
 #
 # ----------Imports and UI-------------------------------------------------------------------------
@@ -18,6 +22,8 @@ from tkinter import filedialog, messagebox
 import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Point
+
+print("On ODKToField Basic v" + __version__)
 
 # Beginner friendly settings (edit these):
 # RECORDED_IN sets the Operation in Field Desktop data should be imported to. This is expected to be

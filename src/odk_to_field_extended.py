@@ -1,3 +1,6 @@
+__version__ = "0.1.0.9000"
+
+
 # File System Operations
 import os
 import sys
@@ -50,7 +53,7 @@ class ODKToField:
         
     def __init__(self, root): 
         self.root = root
-        self.root.title("ODK → Field Desktop Helper")
+        self.root.title("ODK → Field Desktop Helper v" + __version__)
         self.root.minsize(800, 300)
 
         # -- Log window --
