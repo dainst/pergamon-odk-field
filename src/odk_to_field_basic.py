@@ -7,7 +7,7 @@
 # You can scroll down to the next heading to see where you might want or need 
 # to change things. 
 # You are working with version: 
-__version__ = "0.1.0.9000"
+__version__ = "0.1.0"
 # of this script.
 #
 #

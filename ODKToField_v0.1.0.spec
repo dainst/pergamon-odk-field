@@ -26,7 +26,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='odk_to_field_extended',
+    name='ODKToField_v0.1.0',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

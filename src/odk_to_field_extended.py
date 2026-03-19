@@ -1,4 +1,4 @@
-__version__ = "0.1.0.9000"
+__version__ = "0.1.0"
 
 # File & File System Operations
 import os

@@ -55,10 +55,9 @@ To build the standalone executable on your operating system of choice run the fo
 ```python 
 # add pyinstaller to your venv (note: it is only used for building the executable and thus not in the requirements.txt)
 pip install pyinstaller
-pyinstaller --onefile --windowed --collect-submodules pyogrio src/odk_to_field_extended.py 
+pyinstaller --onefile --windowed --collect-submodules pyogrio --name "ODKToField_v0.1.0" src/odk_to_field_extended.py 
 ```
-
-The executable (for your current operating system) will be located in `/dist/`. 
+The executable (for your current operating system) will be located in `/dist/`. Remember to update the version number accordingly for each release. 
 
 # Further Information
 For more details about the Pergamon project and ongoing research activities, please consult the following resources:
