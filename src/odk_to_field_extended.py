@@ -138,6 +138,11 @@ class ODKToField:
         self.log_text.insert(tk.END, message + "\n")
         self.log_text.see(tk.END)
         self.root.update_idletasks()
+    
+    def finish_this_run(self, message):
+        self.log(message)
+        self.start_button.config(state=tk.NORMAL)
+        return
 
     def select_input_file(self) -> str | None:
         """Opens the file dialog that prompts users to select the input csv-file, return the path or None if canceled."""
@@ -422,7 +427,7 @@ class ODKToField:
 
         input_csv_path = self.select_input_file()
         if not input_csv_path:
-            self.log("Cancelled: No file selected.")
+            self.finish_this_run("Cancelled: No file selected.")
             return
         
         self.log(f"Processing file: {input_csv_path}")
@@ -433,7 +438,7 @@ class ODKToField:
         try:
             data = pd.read_csv(input_csv_path)
         except Exception as e:
-            self.log(f"Error: Could not read CSV file - {e}")
+            self.finish_this_run(f"Error: Could not read CSV file - {e}")
             messagebox.showerror(title = "Error", message = f"Could not read CSV file:\n{e}")
             return
 
@@ -441,7 +446,7 @@ class ODKToField:
         # and will abort the run gracefully if they are not, so that the user can fix the 
         # csv-file and try again.  
         if not self.all_columns_present_in_input(data):
-            self.log("Processing cancelled.")
+            self.finish_this_run("Processing cancelled.")
             return
         
         # Here, we select the content of the csv file by the date selected in the date picker. 
@@ -450,7 +455,7 @@ class ODKToField:
         self.log(f"Filtering for date: {self.date_picker.get_date()}")
         data = self.filter_by_date(data)
         if data is None: 
-            self.log("Processing cancelled.")
+            self.finish_this_run("Processing cancelled.")
             return
 
         # Filter empty/whitespace find_id rows, because we only want to import the finds that have a scanCode and thus
@@ -459,7 +464,7 @@ class ODKToField:
         # been skipped. 
         data = self.filter_rows_without_find_id(data)
         if data is None:
-            self.log("Processing cancelled.")
+            self.finish_this_run("Processing cancelled.")
             return
         
         # -- Map categories --
@@ -468,7 +473,7 @@ class ODKToField:
         # the user can fix the file manually and try again. 
         data = self.map_categories(data)
         if data is None: 
-            self.log("Processing cancelled.")
+            self.finish_this_run("Processing cancelled.")
             return
 
         # -- Duplicates --
@@ -480,13 +485,13 @@ class ODKToField:
         # Last step in the transformation, we build the new dataframe in the format iDAI.field expects:
         field_data = self.build_field_data(data)
         if field_data is None:
-            self.log("Processing cancelled.")
+            self.finish_this_run("Processing cancelled.")
             return
         # TODO needs error handling and clear communication about malformed input file.
 
         output_dir = self.select_output_directory()
         if not output_dir:
-            self.log("Cancelled. No output directory selected")
+            self.finish_this_run("Cancelled. No output directory selected")
             return
 
         self.log(f"Writing CSV and GeoJSON output files to directory: {output_dir}")
@@ -494,21 +499,19 @@ class ODKToField:
         try: 
             self.save_csv_output(field_data, duplicates, output_dir)
         except Exception as e:
-            self.log(f"Error: Could not save CSV files - {e}")
+            self.finish_this_run(f"Error: Could not save CSV files - {e}")
             messagebox.showerror(title = "Error", message = f"Could not save CSV files.")
             return
 
         try: 
             self.save_geodata(data, duplicates, output_dir)
         except Exception as e:
-            self.log(f"Error: Could not save geodata - {e}")
+            self.finish_this_run(f"Error: Could not save geodata - {e}")
             messagebox.showerror(title = "Error", message = f"Could not save geodata.")
             return
 
-        self.log(f"Processing file '{os.path.basename(input_csv_path)}' finished.")
+        self.finish_this_run(f"Processing file '{os.path.basename(input_csv_path)}' finished.")
         messagebox.showinfo("Success", "CSV processed successfully.")
-        self.start_button.config(state=tk.NORMAL)
-
         return
 
     def shutdown(self):
