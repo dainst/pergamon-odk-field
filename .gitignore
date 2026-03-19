@@ -6,3 +6,5 @@
 out/*
 venv/*
 data/um*
+build/*
+dist/*
