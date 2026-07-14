@@ -23,7 +23,7 @@ jobs:
           pip install pyinstaller
 
       - name: Build Executable
-        run: pyinstaller --onefile --windowed --collect-submodules pyogrio --name "ODKToField_v0.1.0" src/odk_to_field_extended.py
+        run: pyinstaller ODKToField.spec
       
       - name: Upload exe as artifact
         uses: actions/upload-artifact@v7
