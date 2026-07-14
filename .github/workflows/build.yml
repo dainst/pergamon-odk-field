@@ -21,6 +21,11 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install pyinstaller
+          pip install gdal-installer
+          install-gdal
+
+      - name: see if gdal exist
+        run: python debug-gdal.py
 
       - name: Build Executable
         run: pyinstaller ODKToField.spec
