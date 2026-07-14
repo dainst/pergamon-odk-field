@@ -24,17 +24,15 @@ jobs:
           pip install gdal-installer
           install-gdal
 
-      - name: see if gdal exist
+      - name: See if GDAL exists
         run: python debug-gdal.py
 
-      - name: and what is in the folder
+      - name: Check contents of GDAL installation directory
         run: |
           ls C:\hostedtoolcache\windows\Python\3.14.6\x64\Lib\site-packages\osgeo
-          xcopy C:\hostedtoolcache\windows\Python\3.14.6\x64\Lib\site-packages\osgeo\ osgeo\
-          ls osgeo
 
       - name: Build Executable
-        run: pyinstaller ODKToField.spec
+        run: pyinstaller ODKToField-win.spec
       
       - name: Upload exe as artifact
         uses: actions/upload-artifact@v7
