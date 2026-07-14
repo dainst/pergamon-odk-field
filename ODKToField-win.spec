@@ -6,7 +6,8 @@ hiddenimports += collect_submodules('geopandas')
 hiddenimports += collect_submodules('pyogrio')
 hiddenimports += collect_submodules('shapely')
 
-datas=[('C:\hostedtoolcache\windows\Python\3.14.6\x64\Lib\site-packages\osgeo\gdal*.dll','gdal')]
+# A GDAL installation has to be present in the OSGEO-directory in this repo.
+datas=[('osgeo\gdal.dll','gdal')]
 
 a = Analysis(
     ['src/odk_to_field_extended.py'],

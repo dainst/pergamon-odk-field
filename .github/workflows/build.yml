@@ -24,12 +24,15 @@ jobs:
           pip install gdal-installer
           install-gdal
 
-      - name: See if GDAL exists
-        run: python debug-gdal.py
+      - name: Make sure GDAL exists and find directory
+      # In the future: You may need to change the path below. I can't be bothered to find a dynamic solutin in powershell.
+        run: python utils/find-gdal.py
 
-      - name: Check contents of GDAL installation directory
+      - name: Copy GDAL installation directory
         run: |
           ls C:\hostedtoolcache\windows\Python\3.14.6\x64\Lib\site-packages\osgeo
+          xcopy C:\hostedtoolcache\windows\Python\3.14.6\x64\Lib\site-packages\osgeo\ osgeo\
+          ls osgeo
 
       - name: Build Executable
         run: pyinstaller ODKToField-win.spec
