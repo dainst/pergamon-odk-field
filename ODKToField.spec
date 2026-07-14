@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-from PyInstaller.utils.hooks import collect_submodules
+from PyInstaller.utils.hooks import collect_submodules, collect_data_files
 
 # Maybe pyinstaller is unable to get these dependencies; I think it did. But it can't hurt.
 hiddenimports = []
