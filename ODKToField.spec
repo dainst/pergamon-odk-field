@@ -1,16 +1,11 @@
 # -*- mode: python ; coding: utf-8 -*-
-from PyInstaller.utils.hooks import collect_submodules, collect_data_files
+from PyInstaller.utils.hooks import collect_submodules
 
-# Maybe pyinstaller is unable to get these dependencies; I think it did. But it can't hurt.
 hiddenimports = []
 hiddenimports += collect_submodules('geopandas')
-hiddenimports += collect_submodules('pyproj')
+hiddenimports += collect_submodules('pyogrio')
 hiddenimports += collect_submodules('shapely')
 
-# gdal is not native python and pyinstaller probably can't bundle this at all.
-datas = []
-datas += collect_data_files('osgeo') 
-datas += collect_data_files('pyproj')
 
 a = Analysis(
     ['src/odk_to_field_extended.py'],
