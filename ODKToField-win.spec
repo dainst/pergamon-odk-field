@@ -2,8 +2,9 @@
 from PyInstaller.utils.hooks import collect_submodules
 
 hiddenimports = []
+hiddenimports += collect_submodules('geopandas')
 hiddenimports += collect_submodules('pyogrio')
-
+hiddenimports += collect_submodules('shapely')
 
 a = Analysis(
     ['src/odk_to_field_extended.py'],

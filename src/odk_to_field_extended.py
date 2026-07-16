@@ -26,7 +26,7 @@ class ODKToField:
     # any of the Operation-subcategories which allow adding Find-resources to them directly. 
     # The resource (in this case "ODK Import Data") has to exist, otherwise imports will fail. 
     RECORDED_IN_DEFAULT = "ODK Import Data"
-    TARGET_CRS_EPSG = 32635 # UTM zone 35N; adjust if needed
+    TARGET_CRS_EPSG = 32635 # UTM zone 35N; adjust if needed | CURRENTLY if an error occurs when transforming, crs will not be changed. (DEBUG)
 
     CATEGORY_MAPPING_DEFAULT = {
         "ceramic / pottery": "Pottery",
@@ -388,12 +388,17 @@ class ODKToField:
         if geodata.empty:
             self.log("No valid coordinate rows found — skipping GeoJSON export.")
             return
-  
+
         gdf = gpd.GeoDataFrame(
-            geodata,
-            geometry=[Point(xy) for xy in zip(geodata["geopoint-Longitude"], geodata["geopoint-Latitude"])],
-            crs="EPSG:4326",
-        ).to_crs(epsg=self.TARGET_CRS_EPSG)
+                geodata,
+                geometry=[Point(xy) for xy in zip(geodata["geopoint-Longitude"], geodata["geopoint-Latitude"])],
+                crs="EPSG:4326",
+            )
+        try:
+            gdf = gdf.to_crs(epsg=self.TARGET_CRS_EPSG)
+        except Exception as e:
+            self.log(f"Warning: Could not transform CRS - {e}")
+            messagebox.showerror(title = "Warning", message = f"Could not transform CRS! Will return input CRS.")
 
         # -- Drop original coordinate columns --
         # We can remove the original geodata from the attributes; it makes the file larger and these attributes 

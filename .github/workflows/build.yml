@@ -1,0 +1,34 @@
+name: Build Windows Executable
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-win:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.14' 
+          cache: 'pip' # caching pip dependencies
+
+      - name: Install python dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build Executable
+        run: pyinstaller ODKToField-win.spec
+      
+      - name: Upload exe as artifact
+        uses: actions/upload-artifact@v7
+        with: 
+          name: windows-dist
+          path: dist/*
+          retention-days: 31
+          overwrite: true
