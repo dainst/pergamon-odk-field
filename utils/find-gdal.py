@@ -30,3 +30,5 @@ print(osgeo.gdal.__file__)
 # All the osgeo/gdal exes and dlls will then be in the current directoy (the repo directory)
 # in the "osgeo" dir. Which is where the pyinstaller-spec expects them.
 # I'm sorry. 
+
+# Well, it wont work. 

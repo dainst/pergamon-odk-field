@@ -6,13 +6,10 @@ hiddenimports += collect_submodules('geopandas')
 hiddenimports += collect_submodules('pyogrio')
 hiddenimports += collect_submodules('shapely')
 
-# A GDAL installation has to be present in the osgeo-directory in this repo.
-# https://stackoverflow.com/questions/48210090/how-to-use-bundled-program-after-pyinstaller-add-binary ?
-
 a = Analysis(
     ['src/odk_to_field_extended.py'],
     pathex=[],
-    binaries='osgeo\gdal.dll;gdal',
+    binaries=[],
     datas=[],
     hiddenimports=hiddenimports,
     hookspath=[],
