@@ -26,7 +26,7 @@ class ODKToField:
     # any of the Operation-subcategories which allow adding Find-resources to them directly. 
     # The resource (in this case "ODK Import Data") has to exist, otherwise imports will fail. 
     RECORDED_IN_DEFAULT = "ODK Import Data"
-    TARGET_CRS_EPSG = 111111132635 # UTM zone 35N; adjust if needed | CURRENTLY if an error occurs when transforming, crs will not be changed. (DEBUG)
+    TARGET_CRS_EPSG = 32635 # UTM zone 35N; adjust if needed | CURRENTLY if an error occurs when transforming, crs will not be changed. (DEBUG)
 
     CATEGORY_MAPPING_DEFAULT = {
         "ceramic / pottery": "Pottery",
