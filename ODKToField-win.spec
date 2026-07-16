@@ -12,7 +12,7 @@ hiddenimports += collect_submodules('shapely')
 a = Analysis(
     ['src/odk_to_field_extended.py'],
     pathex=[],
-    binaries='osgeo\gdal.dll;gdal'
+    binaries='osgeo\gdal.dll;gdal',
     datas=[],
     hiddenimports=hiddenimports,
     hookspath=[],
