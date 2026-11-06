@@ -4,19 +4,17 @@ This repository contains a script that facilitates the import of archaeological 
 
 Two scripts are supplied in the reposity. The extended script is released as an executable. It processes and transforms data as exported from the Pergamon Micro-Region Survey Project ODK instance, and saves it in `csv` and `GeoJSON` formats suitable for import into Field Desktop (based on the Project Configuration of the Pergamon Excavation). Only rows that have a 'find_id' (i.e. finds which will be handed over to find processing) are processend. 'find_type' values are replaced with the corresponding categories in Field Desktop, coordinates are transformed from WGS 84 (EPSG: 4326) to WGS 84 UTM Zone 35N (EPSG: 32635), and duplicate 'find_id's are noted and separated. 
 
-The workflow has been published as `...tba...`
+The workflow including a supplement is published as `B. Ludwig, L. Steinmann, N. Neuenfeld, Structured Data Collection in Archaeological Surveys. The Use of OpenDataKit (ODK) in the Pergamon Micro-Region (Western Türkiye), FdAI, 2026.`
 
 ```bibtex
 @article{
-  title = {Structured Data Collection in Archaeological Surveys. The Use of OpenDataKit (ODK) in the Pergamon Micro-Region (western Türkiye)},
+  title = {Structured Data Collection in Archaeological Surveys. The Use of OpenDataKit (ODK) in the Pergamon Micro-Region (Western Türkiye)},
   author = {Ludwig, Bernhard and Neuenfeld, Nicole and Steinmann, Lisa},
-  date = {2026},
   journaltitle = {Forum for Digital Archaeology and Infrastructure},
-  volume = {XX},
-  number = {XX},
+  year = {2026},
   issn = {2748-8861},
-  doi = {xxx},
-  url = {xxx}
+  doi = {tba},
+  url = {tba}
 }
 ```
 
