@@ -56,7 +56,7 @@ To build the standalone executable on your operating system of choice run the fo
 # add pyinstaller to your venv (note: it is only used for building the executable and thus not in the requirements.txt)
 pip install pyinstaller
 # For Linux: 
-pyinstaller --onefile --windowed --collect-submodules pyogrio --name "ODKToField_v0.1.0" src/odk_to_field_extended.py 
+pyinstaller --onefile --windowed --collect-submodules pyogrio --name "ODKToField_v1.0.0" src/odk_to_field_extended.py 
 ```
 
 On windows, the exe will not be able to transform coordinate systems, since this would require packaging GDAL in this script. You can
