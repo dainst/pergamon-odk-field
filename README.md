@@ -9,12 +9,11 @@ The workflow including a supplement is published as `B. Ludwig, L. Steinmann, N.
 ```bibtex
 @article{
   title = {Structured Data Collection in Archaeological Surveys. The Use of OpenDataKit (ODK) in the Pergamon Micro-Region (Western Türkiye)},
-  author = {Ludwig, Bernhard and Neuenfeld, Nicole and Steinmann, Lisa},
+  author = {Ludwig, Bernhard and Steinmann, Lisa and Neuenfeld, Nicole},
   journaltitle = {Forum for Digital Archaeology and Infrastructure},
   year = {2026},
   issn = {2748-8861},
-  doi = {tba},
-  url = {tba}
+  doi = {https://doi.org/10.34780/0hq9gv93}
 }
 ```
 
@@ -64,6 +63,9 @@ Then:
 pyinstaller ODKToField-win 
 ```
 The executable (for your current operating system) will be located in `/dist/`. Remember to update the version number accordingly for each release. 
+
+## Disclaimer
+The scripts are almost entirely human written. LLMs were used intermittently for code review and suggestions. 
 
 # Further Information
 For more details about the Pergamon project and ongoing research activities, please consult the following resources:
